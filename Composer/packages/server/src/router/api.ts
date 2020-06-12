@@ -8,12 +8,14 @@ import { StorageController } from '../controllers/storage';
 import { PublishController } from '../controllers/publisher';
 import { AssetController } from '../controllers/asset';
 import { EjectController } from '../controllers/eject';
+import { ProcessManagementController } from '../controllers/processManagement';
 
 const router: Router = express.Router({});
 
 router.post('/projects', ProjectController.createProject);
 router.get('/projects', ProjectController.getAllProjects);
 router.get('/projects/recent', ProjectController.getRecentProjects);
+router.get('/projects/processes', ProjectController.getProcesses);
 
 router.get('/projects/:projectId', ProjectController.getProjectById);
 router.put('/projects/open', ProjectController.openProject);
@@ -48,6 +50,10 @@ router.post('/runtime/eject/:projectId/:template', EjectController.eject);
 
 //assets
 router.get('/assets/projectTemplates', AssetController.getProjTemplates);
+
+//bot processes
+router.get('/bot-processes', ProcessManagementController.getBots);
+router.get('/bot-processes', ProcessManagementController.getBots);
 
 const ErrorHandler = (handler: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(handler(req, res, next)).catch(next);

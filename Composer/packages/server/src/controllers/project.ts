@@ -346,6 +346,8 @@ async function getAllProjects(req: Request, res: Response) {
   }
 }
 
+async function getProcesses(req: Request, res: Response) {}
+
 export const ProjectController = {
   getProjectById,
   openProject,
@@ -361,4 +363,5 @@ export const ProjectController = {
   createProject,
   getAllProjects,
   getRecentProjects,
+  getProcesses,
 };
