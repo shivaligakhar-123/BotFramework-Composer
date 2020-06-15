@@ -8,7 +8,6 @@ import { StorageController } from '../controllers/storage';
 import { PublishController } from '../controllers/publisher';
 import { AssetController } from '../controllers/asset';
 import { EjectController } from '../controllers/eject';
-import { ProcessManagementController } from '../controllers/processManagement';
 
 const router: Router = express.Router({});
 
@@ -28,6 +27,8 @@ router.post('/projects/:projectId/skill/check', ProjectController.getSkill);
 router.post('/projects/:projectId/luFiles/publish', ProjectController.publishLuis);
 router.post('/projects/:projectId/project/saveAs', ProjectController.saveProjectAs);
 router.get('/projects/:projectId/export', ProjectController.exportProject);
+router.get('/projects/processes/:projectId/restart', ProjectController.restartProject);
+router.get('/projects/processes/:projectId/stop', ProjectController.stopProject);
 
 // storages
 router.put('/storages/currentPath', StorageController.updateCurrentPath);
@@ -50,10 +51,6 @@ router.post('/runtime/eject/:projectId/:template', EjectController.eject);
 
 //assets
 router.get('/assets/projectTemplates', AssetController.getProjTemplates);
-
-//bot processes
-router.get('/bot-processes', ProcessManagementController.getBots);
-router.get('/bot-processes', ProcessManagementController.getBots);
 
 const ErrorHandler = (handler: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(handler(req, res, next)).catch(next);

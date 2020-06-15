@@ -81,6 +81,26 @@
       "name": "Server: Attach",
       "port": 9228,
       "sourceMaps": true
-    }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Composer Electron",
+      "runtimeExecutable": "${workspaceFolder}/Composer/node_modules/.bin/electron",
+      "args": [
+        "${workspaceFolder}/Composer/packages/electron-server",
+      ],
+      "env": {
+        "NODE_ENV": "development",
+      },
+      "outputCapture": "std"
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to app/electron-server",
+      "address": "localhost",
+      "port": 7777,
+    },
   ]
 }
