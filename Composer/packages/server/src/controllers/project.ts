@@ -346,15 +346,21 @@ async function getAllProjects(req: Request, res: Response) {
   }
 }
 
-async function getProcesses(req: Request, res: Response) {}
-
-async function stopProject(req: Request, res: Response) {
-  const projectId = req.params.projectId;
+async function getProcesses(req: Request, res: Response) {
+  try {
+    const runningBots = BotProjectService.getAllRunningBots();
+    res.status(200).json(runningBots);
+  } catch (e) {
+    res.status(400).json({
+      message: e.message,
+    });
+  }
+  return;
 }
 
-async function restartProject(req: Request, res: Response) {
-  const projectId = req.params.projectId;
-}
+async function stopProject(req: Request, res: Response) {}
+
+async function restartProject(req: Request, res: Response) {}
 
 export const ProjectController = {
   getProjectById,
