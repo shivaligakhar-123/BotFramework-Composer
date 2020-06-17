@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 import * as fs from 'fs';
+import { resolve } from 'dns';
 
 import { Request, Response } from 'express';
 import { Archiver } from 'archiver';
@@ -14,6 +15,7 @@ import { LocationRef } from '../models/bot/interface';
 import { getSkillByUrl } from '../models/bot/skillManager';
 import StorageService from '../services/storage';
 import settings from '../settings';
+import { BotProject } from '../models/bot/botProject';
 
 import { Path } from './../utility/path';
 
@@ -21,6 +23,7 @@ async function createProject(req: Request, res: Response) {
   let { templateId } = req.body;
   const { name, description, storageId, location, schemaUrl } = req.body;
   const user = await PluginLoader.getUserFromRequest(req);
+
   if (templateId === '') {
     templateId = 'EmptyBot';
   }
@@ -349,7 +352,26 @@ async function getAllProjects(req: Request, res: Response) {
 async function getProcesses(req: Request, res: Response) {
   try {
     const runningBots = BotProjectService.getAllRunningBots();
-    res.status(200).json(runningBots);
+    const mappedBots = await new Promise((resolve, reject) => {
+      const bots: { pid: string; port: string; name: string }[] = [];
+      Object.keys(runningBots).forEach(async (key) => {
+        try {
+          const currentBot = runningBots[key];
+          const user = await PluginLoader.getUserFromRequest(req);
+          const currentProject: BotProject = await BotProjectService.getProjectById(key, user);
+
+          bots.push({
+            pid: currentBot.process.pid,
+            port: currentBot.port,
+            name: currentProject.name,
+          });
+        } catch (ex) {
+          reject(ex);
+        }
+      });
+      resolve(bots);
+    });
+    res.status(200).json(mappedBots);
   } catch (e) {
     res.status(400).json({
       message: e.message,

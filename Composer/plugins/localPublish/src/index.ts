@@ -131,7 +131,7 @@ class LocalPublisher implements PublishPlugin<PublishConfig> {
     }
   };
 
-  static getRunningBots = async () => {
+  getRunningBots = () => {
     return LocalPublisher.runningBots;
   };
 

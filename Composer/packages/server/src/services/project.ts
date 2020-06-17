@@ -287,8 +287,6 @@ export class BotProjectService {
   };
 
   public static getAllRunningBots = () => {
-    console.log(pluginLoader.extensions.publish.localpublish.methods.getRunningBots);
-    const pluginMethod = pluginLoader.extensions.publish.localpublish.methods.getRunningBots;
-    pluginMethod.call();
+    return pluginLoader.extensions.publish.localpublish.methods?.getRunningBots.call();
   };
 }
