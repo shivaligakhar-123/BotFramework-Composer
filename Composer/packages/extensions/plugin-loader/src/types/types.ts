@@ -113,6 +113,9 @@ export interface ExtensionCollection {
         instructions?: string;
         /** (Optional) Schema for publishing configuration. */
         schema?: JSONSchema7;
+        // TODO (toanzian): do we need this here? VVVV
+        /** Whether or not the plugin has custom UI to host in the publish surface */
+        hasView: boolean;
       };
       methods: PublishPlugin;
     };

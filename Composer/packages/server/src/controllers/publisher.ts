@@ -20,6 +20,8 @@ export const PublishController = {
             description: plugin.description,
             instructions: plugin.instructions,
             schema: plugin.schema,
+            // TODO (toanzian): make sure this works vv
+            hasView: plugin.hasView,
             features: {
               history: typeof methods.history === 'function',
               publish: typeof methods.publish === 'function',

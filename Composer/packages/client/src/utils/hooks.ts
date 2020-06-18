@@ -26,7 +26,16 @@ export const useLinks = () => {
   const designPageLocation = useRecoilValue(designPageLocationState);
   const openedDialogId = designPageLocation.dialogId || 'Main';
 
-  return { topLinks: topLinks(projectId, openedDialogId), bottomLinks };
+  // add page-contributing plugins
+  const pluginPages = plugins.reduce((pages, p) => {
+    const pageConfig = p.contributes?.views?.page;
+    if (pageConfig) {
+      pages.push({ ...pageConfig, id: p.id });
+    }
+    return pages;
+  }, [] as any[]);
+
+  return { topLinks: topLinks(projectId, openedDialogId, pluginPages), bottomLinks };
 };
 
 export const useRouterCache = (to: string) => {

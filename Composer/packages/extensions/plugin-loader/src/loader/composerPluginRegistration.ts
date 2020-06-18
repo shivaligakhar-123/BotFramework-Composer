@@ -5,8 +5,8 @@ import { RequestHandler } from 'express-serve-static-core';
 import { Debugger } from 'debug';
 
 import { PluginLoader } from './pluginLoader';
-import log from './logger';
-import { PublishPlugin, RuntimeTemplate, BotTemplate } from './types';
+import log from '../logger';
+import { PublishPlugin, RuntimeTemplate, BotTemplate } from '../types/types';
 
 export class ComposerPluginRegistration {
   public loader: PluginLoader;
@@ -55,6 +55,7 @@ export class ComposerPluginRegistration {
   /**************************************************************************************
    * Publish related features
    *************************************************************************************/
+  // TODO (toanzian): add hasView to PublishPlugin type
   public async addPublishMethod(plugin: PublishPlugin) {
     log('registering publish method', this.name);
     this.loader.extensions.publish[plugin.customName || this.name] = {
