@@ -38,6 +38,9 @@ describe('use luApi hooks', () => {
       set(dispatcherState, (current: Dispatcher) => ({
         ...current,
         updateLuFile: updateLuFileMockMock,
+        createLuIntent: updateLuFileMockMock,
+        updateLuIntent: updateLuFileMockMock,
+        removeLuIntent: updateLuFileMockMock,
       }));
     };
 
@@ -54,7 +57,10 @@ describe('use luApi hooks', () => {
   it('should call add lu intent action', async () => {
     await result.current.addLuIntent('test.en-us', 'test', { Body: '- test add', Name: 'add' });
     expect(updateLuFileMockMock).toBeCalledTimes(1);
-    const arg = { content: '- test add', id: 'test.en-us', projectId: 'test' };
+    const arg = {
+      id: 'test.en-us',
+      intent: { Body: '- test add', Name: 'add' },
+    };
     expect(updateLuFileMockMock).toBeCalledWith(arg);
   });
 
@@ -63,7 +69,11 @@ describe('use luApi hooks', () => {
     expect(updateLuFileMockMock).toBeCalledTimes(1);
     await result.current.updateLuIntent('test.en-us', 'test', { Body: '- test update', Name: 'update' });
     expect(updateLuFileMockMock).toBeCalledTimes(2);
-    const arg = { content: '- test update', id: 'test.en-us', projectId: 'test' };
+    const arg = {
+      id: 'test.en-us',
+      intent: { Body: '- test update', Name: 'update' },
+      intentName: 'test',
+    };
     expect(updateLuFileMockMock).toBeCalledWith(arg);
   });
 
@@ -72,7 +82,7 @@ describe('use luApi hooks', () => {
     await result.current.updateLuIntent('test.en-us', 'test', { Body: '- test update', Name: 'update' });
     await result.current.removeLuIntent('test.en-us', 'remove');
     expect(updateLuFileMockMock).toBeCalledTimes(3);
-    const arg = { content: 'remove', id: 'test.en-us', projectId: 'test' };
+    const arg = { id: 'test.en-us', intentName: 'remove' };
     expect(updateLuFileMockMock).toBeCalledWith(arg);
   });
 

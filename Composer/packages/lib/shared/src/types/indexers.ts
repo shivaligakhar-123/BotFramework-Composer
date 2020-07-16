@@ -61,12 +61,6 @@ export interface LuIntentSection {
   range?: CodeRange;
 }
 
-export interface LuParsed {
-  empty: boolean;
-  intents: LuIntentSection[];
-  diagnostics: Diagnostic[];
-}
-
 export enum LuSectionTypes {
   SIMPLEINTENTSECTION = 'simpleIntentSection',
   NESTEDINTENTSECTION = 'nestedIntentSection',

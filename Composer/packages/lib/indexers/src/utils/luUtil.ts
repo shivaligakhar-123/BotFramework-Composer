@@ -9,17 +9,73 @@
 
 import { sectionHandler } from '@microsoft/bf-lu/lib/parser/composerindex';
 import isEmpty from 'lodash/isEmpty';
-import { LuIntentSection, LuSectionTypes, Diagnostic } from '@bfc/shared';
-
-import { luIndexer } from '../luIndexer';
+import get from 'lodash/get';
+import { LuFile, LuSectionTypes, LuIntentSection, Diagnostic, Position, Range, DiagnosticSeverity } from '@bfc/shared';
 
 import { buildNewlineText, splitNewlineText } from './help';
-
-const { parse } = luIndexer;
 
 const { luParser, sectionOperator } = sectionHandler;
 
 const NEWLINE = '\r\n';
+
+export function convertLuDiagnostic(d: any, source: string): Diagnostic {
+  const severityMap = {
+    ERROR: DiagnosticSeverity.Error,
+    WARN: DiagnosticSeverity.Warning,
+    INFORMATION: DiagnosticSeverity.Information,
+    HINT: DiagnosticSeverity.Hint,
+  };
+  const result = new Diagnostic(d.Message, source, severityMap[d.Severity]);
+
+  const start: Position = d.Range ? new Position(d.Range.Start.Line, d.Range.Start.Character) : new Position(0, 0);
+  const end: Position = d.Range ? new Position(d.Range.End.Line, d.Range.End.Character) : new Position(0, 0);
+  result.range = new Range(start, end);
+
+  return result;
+}
+
+export function convertLuParseResultToLuFile(content: string, id = '', result): LuFile {
+  const { Sections, Errors } = result;
+  const intents: LuIntentSection[] = [];
+  Sections.forEach((section) => {
+    const { Name, Body, SectionType } = section;
+    const range = {
+      startLineNumber: get(section, 'ParseTree.start.line', 0),
+      endLineNumber: get(section, 'ParseTree.stop.line', 0),
+    };
+    if (SectionType === LuSectionTypes.SIMPLEINTENTSECTION) {
+      const Entities = section.Entities.map(({ Name }) => Name);
+      intents.push({ Name, Body, Entities, range });
+    } else if (SectionType === LuSectionTypes.NESTEDINTENTSECTION) {
+      const Children = section.SimpleIntentSections.map((subSection) => {
+        const { Name, Body } = subSection;
+        const range = {
+          startLineNumber: get(subSection, 'ParseTree.start.line', 0),
+          endLineNumber: get(subSection, 'ParseTree.stop.line', 0),
+        };
+        const Entities = subSection.Entities.map(({ Name }) => Name);
+        return { Name, Body, Entities, range };
+      });
+      intents.push({ Name, Body, Children, range });
+      intents.push(
+        ...Children.map((subSection) => {
+          return {
+            ...subSection,
+            Name: `${section.Name}/${subSection.Name}`,
+          };
+        })
+      );
+    }
+  });
+  const diagnostics = Errors.map((e) => convertLuDiagnostic(e, id));
+  return {
+    id,
+    content,
+    empty: !Sections.length,
+    intents,
+    diagnostics,
+  };
+}
 
 // when new add a section in inline editor, the section haven't exist on file context, to make suggestion/validation possiable here mock one.
 export const PlaceHolderSectionName = `_NewSectionPlaceHolderSectionName`;
@@ -71,7 +127,9 @@ export function textFromIntents(intents: LuIntentSection[], nestedLevel = 1): st
 
 export function checkSection(intent: LuIntentSection, enableSections = true): Diagnostic[] {
   const text = textFromIntent(intent, 1, enableSections);
-  return parse(text).diagnostics;
+  const result = luParser.parse(text);
+  const { Errors } = result;
+  return Errors.map((e) => convertLuDiagnostic(e, ''));
 }
 
 export function checkIsSingleSection(intent: LuIntentSection, enableSections = true): boolean {
@@ -109,7 +167,7 @@ function updateInSections(
  * @param intentName intent Name, support subSection naming 'CheckEmail/CheckUnreadEmail'. if #CheckEmail not exist will do recursive add.
  * @param {Name, Body} intent the updates. if intent is empty will do remove.
  */
-export function updateIntent(content: string, intentName: string, intent: LuIntentSection | null): string {
+export function updateIntent(id = '', content: string, intentName: string, intent: LuIntentSection | null): LuFile {
   let targetSection;
   let targetSectionContent;
   const updatedSectionContent = textFromIntent(intent);
@@ -124,14 +182,15 @@ export function updateIntent(content: string, intentName: string, intent: LuInte
         ({ Name }) => Name === childName
       );
       if (!targetChildSection) {
-        return content;
+        return convertLuParseResultToLuFile(content, id, resource);
       }
     } else {
       const targetSection = Sections.find(({ Name }) => Name === intentName);
       if (targetSection) {
-        return new sectionOperator(resource).deleteSection(targetSection.Id).Content;
+        const result = new sectionOperator(resource).deleteSection(targetSection.Id);
+        return convertLuParseResultToLuFile(result.Content, id, result);
       }
-      return content;
+      return convertLuParseResultToLuFile(content, id, resource);
     }
   }
 
@@ -153,10 +212,12 @@ export function updateIntent(content: string, intentName: string, intent: LuInte
 
   // update
   if (targetSection) {
-    return new sectionOperator(resource).updateSection(targetSection.Id, targetSectionContent).Content;
+    const result = new sectionOperator(resource).updateSection(targetSection.Id, targetSectionContent);
+    return convertLuParseResultToLuFile(result.Content, id, result);
     // add if not exist
   } else {
-    return new sectionOperator(resource).addSection(['', targetSectionContent].join(NEWLINE)).Content;
+    const result = new sectionOperator(resource).addSection(['', targetSectionContent].join(NEWLINE));
+    return convertLuParseResultToLuFile(result.Content, id, result);
   }
 }
 
@@ -165,14 +226,14 @@ export function updateIntent(content: string, intentName: string, intent: LuInte
  * @param content origin lu file content
  * @param {Name, Body} intent the adds. Name support subSection naming 'CheckEmail/CheckUnreadEmail', if #CheckEmail not exist will do recursive add.
  */
-export function addIntent(content: string, { Name, Body, Entities }: LuIntentSection): string {
+export function addIntent(id = '', content: string, { Name, Body, Entities }: LuIntentSection): LuFile {
   const intentName = Name;
   if (Name.includes('/')) {
     const [, childName] = Name.split('/');
     Name = childName;
   }
   // If the invoker doesn't want to carry Entities, don't pass Entities in.
-  return updateIntent(content, intentName, { Name, Body, Entities });
+  return updateIntent(id, content, intentName, { Name, Body, Entities });
 }
 
 /**
@@ -180,15 +241,17 @@ export function addIntent(content: string, { Name, Body, Entities }: LuIntentSec
  * @param content origin lu file content
  * @param intentName the remove intentName. Name support subSection naming 'CheckEmail/CheckUnreadEmail', if any of them not exist will do nothing.
  */
-export function removeIntent(content: string, intentName: string): string {
+
+export function removeIntent(id = '', content: string, intentName: string): LuFile {
   if (intentName.includes('/')) {
-    return updateIntent(content, intentName, null);
+    return updateIntent(id, content, intentName, null);
   }
   const resource = luParser.parse(content);
   const { Sections } = resource;
   const targetSection = Sections.find(({ Name }) => Name === intentName);
   if (targetSection) {
-    return new sectionOperator(resource).deleteSection(targetSection.Id).Content;
+    const result = new sectionOperator(resource).deleteSection(targetSection.Id);
+    return convertLuParseResultToLuFile(result.Content, id, result);
   }
-  return content;
+  return convertLuParseResultToLuFile(content, id, resource);
 }

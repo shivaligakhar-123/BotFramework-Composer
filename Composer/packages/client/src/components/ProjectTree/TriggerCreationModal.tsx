@@ -272,7 +272,8 @@ export const TriggerCreationModal: React.FC<TriggerCreationModalProps> = (props)
     const luFileId = luFile?.id || `${dialogId}.${locale}`;
     const newDialog = generateNewDialog(dialogs, dialogId, formData, schemas.sdk?.content);
     if (formData.$kind === intentTypeKey && !isRegEx) {
-      const newContent = addIntent(content, { Name: formData.intent, Body: formData.triggerPhrases });
+      const newContent = addIntent(luFile?.id, content, { Name: formData.intent, Body: formData.triggerPhrases })
+        .content;
       const updateLuFile = {
         id: luFileId,
         content: newContent,

@@ -148,7 +148,8 @@ export class LUServer {
          * so here build the full content from server file content and editor content
          */
         if (source === '.' && sectionId) {
-          content = updateIntent(luFile.content, sectionId, { Name: sectionId, Body: editorContent });
+          content = updateIntent(luFile.id, luFile.content, sectionId, { Name: sectionId, Body: editorContent })
+            .content;
         }
         return { id, content };
       };

@@ -42,42 +42,40 @@ export const luDispatcher = () => {
   );
 
   const updateLuIntent = useRecoilCallback(
-    (callbackHelpers: CallbackInterface) => async ({
-      projectId,
-      file,
+    ({ set }: CallbackInterface) => async ({
+      id,
       intentName,
       intent,
     }: {
-      projectId: string;
-      file: LuFile;
+      id: string;
       intentName: string;
       intent: LuIntentSection;
     }) => {
-      const newContent = luUtil.updateIntent(file.content, intentName, intent);
-      await updateFile(callbackHelpers, { id: file.id, projectId, content: newContent });
+      set(luFilesState, (luFiles) => {
+        const content = luFiles.find((file) => file.id === id)?.content ?? '';
+        const luFile = luUtil.updateIntent(id, content, intentName, intent);
+        return luFiles.map((temp) => (temp.id === id ? luFile : temp));
+      });
     }
   );
 
-  const createLuIntent = useRecoilCallback<
-    [{ projectId: string; file: LuFile; intentName: string; intent: LuIntentSection }],
-    Promise<void>
-  >((callbackHelpers: CallbackInterface) => async ({ projectId, file, intent }) => {
-    const newContent = luUtil.addIntent(file.content, intent);
-    await updateFile(callbackHelpers, { id: file.id, projectId, content: newContent });
-  });
+  const createLuIntent = useRecoilCallback<[{ id: string; intent: LuIntentSection }], Promise<void>>(
+    ({ set }: CallbackInterface) => async ({ id, intent }) => {
+      set(luFilesState, (luFiles) => {
+        const content = luFiles.find((file) => file.id === id)?.content ?? '';
+        const luFile = luUtil.addIntent(id, content, intent);
+        return luFiles.map((temp) => (temp.id === id ? luFile : temp));
+      });
+    }
+  );
 
   const removeLuIntent = useRecoilCallback(
-    (callbackHelpers: CallbackInterface) => async ({
-      projectId,
-      file,
-      intentName,
-    }: {
-      projectId: string;
-      file: LuFile;
-      intentName: string;
-    }) => {
-      const newContent = luUtil.removeIntent(file.content, intentName);
-      await updateFile(callbackHelpers, { id: file.id, projectId, content: newContent });
+    ({ set }: CallbackInterface) => async ({ id, intentName }: { id: string; intentName: string }) => {
+      set(luFilesState, (luFiles) => {
+        const content = luFiles.find((file) => file.id === id)?.content ?? '';
+        const luFile = luUtil.removeIntent(id, content, intentName);
+        return luFiles.map((temp) => (temp.id === id ? luFile : temp));
+      });
     }
   );
 

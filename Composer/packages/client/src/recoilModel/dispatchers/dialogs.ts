@@ -56,7 +56,7 @@ export const dialogsDispatcher = () => {
 
     id = `${id}.${locale}`;
     const { parse } = luIndexer;
-    const luFile = { id, content, ...parse(content, id) };
+    const luFile = parse(content, id);
     luFileStatusStorage.updateFileStatus(projectId, id);
     set(luFilesState, [...luFiles, luFile]);
   };
