@@ -44,9 +44,9 @@ export const EjectModal: React.FC<EjectModalProps> = (props) => {
     }
   };
 
-  const doEject = async () => {
+  const doEject = () => {
     if (selectedTemplate) {
-      await props.ejectRuntime(selectedTemplate);
+      props.ejectRuntime(selectedTemplate);
     }
   };
 

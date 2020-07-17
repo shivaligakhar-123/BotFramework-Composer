@@ -111,17 +111,17 @@ export const TestController: React.FC = () => {
     setCalloutVisible(true);
   }
 
-  async function handlePublishLuis(luisConfig) {
+  function handlePublishLuis(luisConfig) {
     setBotStatus(BotStatus.publishing);
     dismissDialog();
-    await setSettings(projectId, { ...settings, luis: luisConfig });
-    await publishLuis(luisConfig, projectId);
+    setSettings(projectId, { ...settings, luis: luisConfig });
+    publishLuis(luisConfig, projectId);
   }
 
-  async function handleLoadBot() {
+  function handleLoadBot() {
     setBotStatus(BotStatus.reloading);
     const sensitiveSettings = settingsStorage.get(projectId);
-    await publishToTarget(projectId, DefaultPublishConfig, { comment: '' }, sensitiveSettings);
+    publishToTarget(projectId, DefaultPublishConfig, { comment: '' }, sensitiveSettings);
   }
 
   function isLuisConfigComplete(config) {
@@ -143,10 +143,10 @@ export const TestController: React.FC = () => {
       if (botStatus === BotStatus.failed || botStatus === BotStatus.pending || !isLuisConfigComplete(config)) {
         openDialog();
       } else {
-        await handlePublishLuis(config);
+        handlePublishLuis(config);
       }
     } else {
-      await handleLoadBot();
+      handleLoadBot();
     }
   }
 

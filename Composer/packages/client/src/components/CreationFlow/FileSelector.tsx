@@ -181,12 +181,12 @@ export const FileSelector: React.FC<FileSelectorProps> = (props) => {
     const isDup = storageFiles.some((file) => file.name === folderName) && storageFiles[index].name !== folderName;
     if (isValid && !isDup) {
       if (editMode === EditMode.Creating) {
-        createFolder && (await createFolder(initialPath, folderName));
-        await onCurrentPathUpdate(path.join(initialPath, folderName), storageId);
+        createFolder && createFolder(initialPath, folderName);
+        onCurrentPathUpdate(path.join(initialPath, folderName), storageId);
       }
       if (editMode === EditMode.Updating) {
-        updateFolder && (await updateFolder(initialPath, storageFiles[index].name, folderName));
-        await onCurrentPathUpdate(initialPath, storageId);
+        updateFolder && updateFolder(initialPath, storageFiles[index].name, folderName);
+        onCurrentPathUpdate(initialPath, storageId);
       }
       setEditMode(EditMode.NONE);
       setNameError('');
