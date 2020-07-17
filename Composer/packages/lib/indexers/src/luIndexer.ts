@@ -13,7 +13,7 @@ const { luParser } = sectionHandler;
 function parse(content: string, id = ''): LuFile {
   const result = luParser.parse(content);
 
-  return convertLuParseResultToLuFile(content, id, result);
+  return convertLuParseResultToLuFile(id, result);
 }
 
 function index(files: FileInfo[]): LuFile[] {

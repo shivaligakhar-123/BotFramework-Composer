@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@bfc/shared": "*",
-    "@microsoft/bf-lu": "^4.10.0-preview.141651",
+    "@microsoft/bf-lu": "https://botbuilder.myget.org/F/botbuilder-declarative/npm/@bfcomposer/bf-lu/-/@bfcomposer/bf-lu-1.4.1.tgz",
     "adaptive-expressions": "4.10.0-preview-147186",
     "botbuilder-lg": "4.10.0-preview-147186",
     "lodash": "^4.17.15"

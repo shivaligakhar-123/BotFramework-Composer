@@ -34,8 +34,8 @@ export function convertLuDiagnostic(d: any, source: string): Diagnostic {
   return result;
 }
 
-export function convertLuParseResultToLuFile(content: string, id = '', result): LuFile {
-  const { Sections, Errors } = result;
+export function convertLuParseResultToLuFile(id = '', resource): LuFile {
+  const { Sections, Errors } = resource;
   const intents: LuIntentSection[] = [];
   Sections.forEach((section) => {
     const { Name, Body, SectionType } = section;
@@ -70,10 +70,11 @@ export function convertLuParseResultToLuFile(content: string, id = '', result): 
   const diagnostics = Errors.map((e) => convertLuDiagnostic(e, id));
   return {
     id,
-    content,
+    content: resource.Content,
     empty: !Sections.length,
     intents,
     diagnostics,
+    resource,
   };
 }
 
@@ -167,11 +168,10 @@ function updateInSections(
  * @param intentName intent Name, support subSection naming 'CheckEmail/CheckUnreadEmail'. if #CheckEmail not exist will do recursive add.
  * @param {Name, Body} intent the updates. if intent is empty will do remove.
  */
-export function updateIntent(id = '', content: string, intentName: string, intent: LuIntentSection | null): LuFile {
+export function updateIntent(id = '', resource: any, intentName: string, intent: LuIntentSection | null): LuFile {
   let targetSection;
   let targetSectionContent;
   const updatedSectionContent = textFromIntent(intent);
-  const resource = luParser.parse(content);
   const { Sections } = resource;
   // if intent is null, do remove
   // and if remove target not exist return origin content;
@@ -182,15 +182,15 @@ export function updateIntent(id = '', content: string, intentName: string, inten
         ({ Name }) => Name === childName
       );
       if (!targetChildSection) {
-        return convertLuParseResultToLuFile(content, id, resource);
+        return convertLuParseResultToLuFile(id, resource);
       }
     } else {
       const targetSection = Sections.find(({ Name }) => Name === intentName);
       if (targetSection) {
         const result = new sectionOperator(resource).deleteSection(targetSection.Id);
-        return convertLuParseResultToLuFile(result.Content, id, result);
+        return convertLuParseResultToLuFile(id, result);
       }
-      return convertLuParseResultToLuFile(content, id, resource);
+      return convertLuParseResultToLuFile(id, resource);
     }
   }
 
@@ -213,11 +213,11 @@ export function updateIntent(id = '', content: string, intentName: string, inten
   // update
   if (targetSection) {
     const result = new sectionOperator(resource).updateSection(targetSection.Id, targetSectionContent);
-    return convertLuParseResultToLuFile(result.Content, id, result);
+    return convertLuParseResultToLuFile(id, result);
     // add if not exist
   } else {
     const result = new sectionOperator(resource).addSection(['', targetSectionContent].join(NEWLINE));
-    return convertLuParseResultToLuFile(result.Content, id, result);
+    return convertLuParseResultToLuFile(id, result);
   }
 }
 
@@ -226,14 +226,14 @@ export function updateIntent(id = '', content: string, intentName: string, inten
  * @param content origin lu file content
  * @param {Name, Body} intent the adds. Name support subSection naming 'CheckEmail/CheckUnreadEmail', if #CheckEmail not exist will do recursive add.
  */
-export function addIntent(id = '', content: string, { Name, Body, Entities }: LuIntentSection): LuFile {
+export function addIntent(id = '', resource, { Name, Body, Entities }: LuIntentSection): LuFile {
   const intentName = Name;
   if (Name.includes('/')) {
     const [, childName] = Name.split('/');
     Name = childName;
   }
   // If the invoker doesn't want to carry Entities, don't pass Entities in.
-  return updateIntent(id, content, intentName, { Name, Body, Entities });
+  return updateIntent(id, resource, intentName, { Name, Body, Entities });
 }
 
 /**
@@ -242,16 +242,15 @@ export function addIntent(id = '', content: string, { Name, Body, Entities }: Lu
  * @param intentName the remove intentName. Name support subSection naming 'CheckEmail/CheckUnreadEmail', if any of them not exist will do nothing.
  */
 
-export function removeIntent(id = '', content: string, intentName: string): LuFile {
+export function removeIntent(id = '', resource, intentName: string): LuFile {
   if (intentName.includes('/')) {
-    return updateIntent(id, content, intentName, null);
+    return updateIntent(id, resource, intentName, null);
   }
-  const resource = luParser.parse(content);
   const { Sections } = resource;
   const targetSection = Sections.find(({ Name }) => Name === intentName);
   if (targetSection) {
     const result = new sectionOperator(resource).deleteSection(targetSection.Id);
-    return convertLuParseResultToLuFile(result.Content, id, result);
+    return convertLuParseResultToLuFile(id, result);
   }
-  return convertLuParseResultToLuFile(content, id, resource);
+  return convertLuParseResultToLuFile(id, resource);
 }
