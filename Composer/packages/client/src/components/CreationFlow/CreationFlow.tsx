@@ -16,6 +16,7 @@ import {
   templateProjectsState,
   storagesState,
   focusedStorageFolderState,
+  botNameState,
 } from '../../recoilModel';
 import Home from '../../pages/home/Home';
 
