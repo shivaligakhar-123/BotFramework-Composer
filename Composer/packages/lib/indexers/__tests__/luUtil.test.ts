@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-
 import { sectionHandler } from '@microsoft/bf-lu/lib/parser/composerindex';
 
 import { updateIntent, addIntent, removeIntent } from '../src/utils/luUtil';
@@ -33,11 +32,8 @@ hi
   const fileId1 = 'a.lu';
   const fileId2 = 'b.lu';
 
-  const luFile1 = luIndexer.parse(fileContent, fileId1);
-  const luFile2 = luIndexer.parse(fileContentError1, fileId2);
-
   it('parse section test', () => {
-    const luresource = luFile1.resource;
+    const luresource = luIndexer.parse(fileContent, fileId1).resource;
     const { Sections, Errors, Content } = luresource;
 
     expect(Content).toEqual(fileContent);
@@ -52,7 +48,7 @@ hi
   });
 
   it('parse section with syntax error test', () => {
-    const luresource = luFile2.resource;
+    const luresource = luIndexer.parse(fileContentError1, fileId2).resource;
     const { Sections, Errors, Content } = luresource;
 
     expect(Content).toEqual(fileContentError1);
@@ -68,6 +64,7 @@ hi
       Body: `- check my unread email
       - show my unread emails`,
     };
+    const luFile1 = luIndexer.parse(fileContent, fileId1);
 
     const fileContentUpdated = addIntent(luFile1, intent).content;
     const luresource = luParser.parse(fileContentUpdated);
@@ -99,7 +96,7 @@ hi
 - show my emails 2
 - check my mail box please`,
     };
-
+    const luFile1 = luIndexer.parse(fileContent, fileId1);
     const updatedLuFile = updateIntent(luFile1, intentName, intent);
     const luresource = updatedLuFile.resource;
 
@@ -127,7 +124,7 @@ hi
     expect(luresource2.Sections[1].UtteranceAndEntitiesMap.length).toEqual(3);
     expect(luresource2.Sections[1].UtteranceAndEntitiesMap[0].utterance).toEqual('check my email');
     expect(luresource2.Sections[1].UtteranceAndEntitiesMap[1].utterance).toEqual('show my emails 2');
-    expect(luresource.Sections[1].UtteranceAndEntitiesMap[1].utterance).toEqual('show my emails');
+    expect(luresource.Sections[1].UtteranceAndEntitiesMap[1].utterance).toEqual('show my emails'); // do not modify arguments
     expect(luresource2.Sections[1].UtteranceAndEntitiesMap[2].utterance).toEqual('check my mail box please');
   });
 
@@ -222,6 +219,7 @@ hi
 
   it('delete section test', () => {
     const intentName = 'CheckEmail';
+    const luFile1 = luIndexer.parse(fileContent, fileId1);
     const fileContentUpdated = removeIntent(luFile1, intentName).content;
     const luresource = luParser.parse(fileContentUpdated);
 

@@ -6,7 +6,6 @@
  * it's designed have no state, input text file, output text file.
  * for more usage detail, please check client/__tests__/utils/luUtil.test.ts
  */
-
 import { sectionHandler } from '@microsoft/bf-lu/lib/parser/composerindex';
 import isEmpty from 'lodash/isEmpty';
 import get from 'lodash/get';

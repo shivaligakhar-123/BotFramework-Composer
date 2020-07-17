@@ -220,10 +220,10 @@
     semver "^5.5.1"
     tslib "^1.10.0"
 
-"@microsoft/bf-lu@^1.3.6":
-  version "1.3.6"
-  resolved "https://botbuilder.myget.org/F/botbuilder-declarative/npm/@microsoft/bf-lu/-/@microsoft/bf-lu-1.3.6.tgz#69d09da1444a2db06a95d74c9c2fa4599af28f3c"
-  integrity sha1-adCdoURKLbBqlddMnC+kWZryjzw=
+"@microsoft/bf-lu@^1.3.7":
+  version "1.3.7"
+  resolved "https://botbuilder.myget.org/F/botbuilder-declarative/npm/@microsoft/bf-lu/-/@microsoft/bf-lu-1.3.7.tgz#80070164d1573418779b9c7645f14ac04f30c675"
+  integrity sha1-gAcBZNFXNBh3m5x2RfFKwE8wxnU=
   dependencies:
     "@azure/cognitiveservices-luis-authoring" "4.0.0-preview.1"
     "@azure/ms-rest-azure-js" "2.0.1"
