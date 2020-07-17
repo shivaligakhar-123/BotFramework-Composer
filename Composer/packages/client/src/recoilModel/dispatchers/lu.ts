@@ -65,8 +65,11 @@ export const luDispatcher = () => {
   const createLuIntent = useRecoilCallback<[{ id: string; intent: LuIntentSection }], Promise<void>>(
     ({ set }: CallbackInterface) => async ({ id, intent }) => {
       set(luFilesState, (luFiles) => {
-        const content = luFiles.find((file) => file.id === id)?.content ?? '';
-        const luFile = luUtil.addIntent(id, content, intent);
+        const previous = luFiles.find((file) => file.id === id);
+        if (!previous) {
+          throw new Error('lu file not find');
+        }
+        const luFile = luUtil.addIntent(previous, intent);
         return luFiles.map((temp) => (temp.id === id ? luFile : temp));
       });
     }
@@ -75,8 +78,11 @@ export const luDispatcher = () => {
   const removeLuIntent = useRecoilCallback(
     ({ set }: CallbackInterface) => async ({ id, intentName }: { id: string; intentName: string }) => {
       set(luFilesState, (luFiles) => {
-        const content = luFiles.find((file) => file.id === id)?.content ?? '';
-        const luFile = luUtil.removeIntent(id, content, intentName);
+        const previous = luFiles.find((file) => file.id === id);
+        if (!previous) {
+          throw new Error('lu file not find');
+        }
+        const luFile = luUtil.removeIntent(previous, intentName);
         return luFiles.map((temp) => (temp.id === id ? luFile : temp));
       });
     }
