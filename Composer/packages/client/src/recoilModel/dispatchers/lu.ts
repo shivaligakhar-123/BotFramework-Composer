@@ -3,7 +3,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { LuFile, LuIntentSection } from '@bfc/shared';
 import { useRecoilCallback, CallbackInterface } from 'recoil';
-import cloneDeep from 'lodash/cloneDeep';
 
 import * as luUtil from '../../utils/luUtil';
 import luFileStatusStorage from '../../utils/luFileStatusStorage';
@@ -56,7 +55,7 @@ export const luDispatcher = () => {
         const previous = luFiles.find((file) => file.id === id);
         if (!previous) return luFiles;
         console.time('lu update');
-        const current = luUtil.updateIntent(id, cloneDeep(previous.resource), intentName, intent);
+        const current = luUtil.updateIntent(previous, intentName, intent);
         console.timeEnd('lu update');
         return luFiles.map((temp) => (temp.id === id ? current : temp));
       });

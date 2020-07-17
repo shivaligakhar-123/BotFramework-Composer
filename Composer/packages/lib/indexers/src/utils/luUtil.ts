@@ -168,9 +168,11 @@ function updateInSections(
  * @param intentName intent Name, support subSection naming 'CheckEmail/CheckUnreadEmail'. if #CheckEmail not exist will do recursive add.
  * @param {Name, Body} intent the updates. if intent is empty will do remove.
  */
-export function updateIntent(id = '', resource: any, intentName: string, intent: LuIntentSection | null): LuFile {
+export function updateIntent(luFile: LuFile, intentName: string, intent: LuIntentSection | null): LuFile {
   let targetSection;
   let targetSectionContent;
+  const { id, resource } = luFile;
+
   const updatedSectionContent = textFromIntent(intent);
   const { Sections } = resource;
   // if intent is null, do remove
@@ -226,14 +228,14 @@ export function updateIntent(id = '', resource: any, intentName: string, intent:
  * @param content origin lu file content
  * @param {Name, Body} intent the adds. Name support subSection naming 'CheckEmail/CheckUnreadEmail', if #CheckEmail not exist will do recursive add.
  */
-export function addIntent(id = '', resource, { Name, Body, Entities }: LuIntentSection): LuFile {
+export function addIntent(luFile: LuFile, { Name, Body, Entities }: LuIntentSection): LuFile {
   const intentName = Name;
   if (Name.includes('/')) {
     const [, childName] = Name.split('/');
     Name = childName;
   }
   // If the invoker doesn't want to carry Entities, don't pass Entities in.
-  return updateIntent(id, resource, intentName, { Name, Body, Entities });
+  return updateIntent(luFile, intentName, { Name, Body, Entities });
 }
 
 /**
@@ -242,9 +244,10 @@ export function addIntent(id = '', resource, { Name, Body, Entities }: LuIntentS
  * @param intentName the remove intentName. Name support subSection naming 'CheckEmail/CheckUnreadEmail', if any of them not exist will do nothing.
  */
 
-export function removeIntent(id = '', resource, intentName: string): LuFile {
+export function removeIntent(luFile: LuFile, intentName: string): LuFile {
+  const { id, resource } = luFile;
   if (intentName.includes('/')) {
-    return updateIntent(id, resource, intentName, null);
+    return updateIntent(luFile, intentName, null);
   }
   const { Sections } = resource;
   const targetSection = Sections.find(({ Name }) => Name === intentName);

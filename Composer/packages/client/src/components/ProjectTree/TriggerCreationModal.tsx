@@ -268,12 +268,10 @@ export const TriggerCreationModal: React.FC<TriggerCreationModalProps> = (props)
       });
       return;
     }
-    const content = luFile?.content ?? '';
     const luFileId = luFile?.id || `${dialogId}.${locale}`;
     const newDialog = generateNewDialog(dialogs, dialogId, formData, schemas.sdk?.content);
-    if (formData.$kind === intentTypeKey && !isRegEx) {
-      const newContent = addIntent(luFile?.id, content, { Name: formData.intent, Body: formData.triggerPhrases })
-        .content;
+    if (formData.$kind === intentTypeKey && !isRegEx && luFile) {
+      const newContent = addIntent(luFile, { Name: formData.intent, Body: formData.triggerPhrases }).content;
       const updateLuFile = {
         id: luFileId,
         content: newContent,

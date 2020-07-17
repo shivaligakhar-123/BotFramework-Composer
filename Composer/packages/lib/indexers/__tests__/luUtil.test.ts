@@ -4,6 +4,7 @@
 import { sectionHandler } from '@microsoft/bf-lu/lib/parser/composerindex';
 
 import { updateIntent, addIntent, removeIntent } from '../src/utils/luUtil';
+import { luIndexer } from '../src/luIndexer';
 
 const { luParser, luSectionTypes } = sectionHandler;
 
@@ -29,9 +30,14 @@ hi
 # Foo
 > nothing in body
 `;
+  const fileId1 = 'a.lu';
+  const fileId2 = 'b.lu';
 
-  it.skip('parse section test', () => {
-    const luresource = luParser.parse(fileContent);
+  const luFile1 = luIndexer.parse(fileContent, fileId1);
+  const luFile2 = luIndexer.parse(fileContentError1, fileId2);
+
+  it('parse section test', () => {
+    const luresource = luFile1.resource;
     const { Sections, Errors, Content } = luresource;
 
     expect(Content).toEqual(fileContent);
@@ -45,8 +51,8 @@ hi
     expect(luresource.Sections[0].UtteranceAndEntitiesMap[1].utterance).toEqual('hello');
   });
 
-  it.skip('parse section with syntax error test', () => {
-    const luresource = luParser.parse(fileContentError1);
+  it('parse section with syntax error test', () => {
+    const luresource = luFile2.resource;
     const { Sections, Errors, Content } = luresource;
 
     expect(Content).toEqual(fileContentError1);
@@ -62,8 +68,8 @@ hi
       Body: `- check my unread email
       - show my unread emails`,
     };
-    const luresource1 = luParser.parse(fileContent);
-    const fileContentUpdated = addIntent('', luresource1, intent).content;
+
+    const fileContentUpdated = addIntent(luFile1, intent).content;
     const luresource = luParser.parse(fileContentUpdated);
     const { Sections, Errors } = luresource;
 
@@ -87,8 +93,15 @@ hi
 - check my mail box please`,
     };
 
-    const fileContentUpdated = updateIntent(fileContent, intentName, intent);
-    const luresource = luParser.parse(fileContentUpdated);
+    const intent2 = {
+      Name: 'CheckEmail',
+      Body: `- check my email
+- show my emails 2
+- check my mail box please`,
+    };
+
+    const updatedLuFile = updateIntent(luFile1, intentName, intent);
+    const luresource = updatedLuFile.resource;
 
     const { Sections, Errors } = luresource;
 
@@ -101,6 +114,21 @@ hi
     expect(luresource.Sections[1].UtteranceAndEntitiesMap[0].utterance).toEqual('check my email');
     expect(luresource.Sections[1].UtteranceAndEntitiesMap[1].utterance).toEqual('show my emails');
     expect(luresource.Sections[1].UtteranceAndEntitiesMap[2].utterance).toEqual('check my mail box please');
+
+    // continue update on luresource
+    const updatedLuFile2 = updateIntent(updatedLuFile, intentName, intent2);
+    const luresource2 = updatedLuFile2.resource;
+
+    expect(luresource2.Errors.length).toEqual(0);
+    expect(luresource2.Sections.length).toEqual(2);
+    expect(luresource2.Sections[1].Errors.length).toEqual(0);
+    expect(luresource2.Sections[1].SectionType).toEqual(luSectionTypes.SIMPLEINTENTSECTION);
+    expect(luresource2.Sections[1].Name).toEqual('CheckEmail');
+    expect(luresource2.Sections[1].UtteranceAndEntitiesMap.length).toEqual(3);
+    expect(luresource2.Sections[1].UtteranceAndEntitiesMap[0].utterance).toEqual('check my email');
+    expect(luresource2.Sections[1].UtteranceAndEntitiesMap[1].utterance).toEqual('show my emails 2');
+    expect(luresource.Sections[1].UtteranceAndEntitiesMap[1].utterance).toEqual('show my emails');
+    expect(luresource2.Sections[1].UtteranceAndEntitiesMap[2].utterance).toEqual('check my mail box please');
   });
 
   it('update section with syntax error: missing -', () => {
@@ -124,13 +152,17 @@ hi
 `,
     };
 
+    const luFile1 = luIndexer.parse(validFileContent);
+
     // when intent invalid, after update can still be parsed
-    const updatedContent2 = updateIntent(validFileContent, intentName, invalidIntent);
+    const updatedContent2 = updateIntent(luFile1, intentName, invalidIntent).content;
     const updatedContent2Parsed = luParser.parse(updatedContent2);
     expect(updatedContent2Parsed.Sections.length).toEqual(1);
     expect(updatedContent2Parsed.Errors.length).toBeGreaterThan(0);
     // when file invalid, update with valid intent should fix error.
-    const updatedContent3 = updateIntent(updatedContent2, intentName, validIntent);
+    const luFile2 = luIndexer.parse(updatedContent2);
+
+    const updatedContent3 = updateIntent(luFile2, intentName, validIntent).content;
     const updatedContent3Parsed = luParser.parse(updatedContent3);
     expect(updatedContent3Parsed.Sections.length).toEqual(1);
     expect(updatedContent3Parsed.Errors.length).toEqual(0);
@@ -149,9 +181,10 @@ hi
 - show my emails
 @`,
     };
+    const luFile1 = luIndexer.parse(validFileContent);
 
     // when intent invalid, after update can still be parsed
-    const updatedContent2 = updateIntent(validFileContent, intentName, invalidIntent);
+    const updatedContent2 = updateIntent(luFile1, intentName, invalidIntent).content;
     const updatedContent2Parsed = luParser.parse(updatedContent2);
     expect(updatedContent2Parsed.Errors.length).toBeGreaterThan(0);
     // TODO: update back should fix error.
@@ -174,8 +207,10 @@ hi
 # UnexpectedIntentDefination
 `,
     };
+    const luFile1 = luIndexer.parse(validFileContent);
+
     // should auto escape # to \#
-    const updatedContent2 = updateIntent(validFileContent, intentName, invalidIntent);
+    const updatedContent2 = updateIntent(luFile1, intentName, invalidIntent).content;
     const { Sections, Errors } = luParser.parse(updatedContent2);
     expect(Errors.length).toEqual(0);
     expect(Sections.length).toEqual(1);
@@ -187,7 +222,7 @@ hi
 
   it('delete section test', () => {
     const intentName = 'CheckEmail';
-    const fileContentUpdated = removeIntent(fileContent, intentName);
+    const fileContentUpdated = removeIntent(luFile1, intentName).content;
     const luresource = luParser.parse(fileContentUpdated);
 
     const { Sections, Errors } = luresource;
