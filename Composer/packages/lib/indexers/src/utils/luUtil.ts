@@ -10,6 +10,8 @@
 import { sectionHandler } from '@microsoft/bf-lu/lib/parser/composerindex';
 import isEmpty from 'lodash/isEmpty';
 import cloneDeep from 'lodash/cloneDeep';
+import cloneDeepWith from 'lodash/cloneDeepWith';
+import isFunction from 'lodash/isFunction';
 
 import get from 'lodash/get';
 import { LuFile, LuSectionTypes, LuIntentSection, Diagnostic, Position, Range, DiagnosticSeverity } from '@bfc/shared';
@@ -39,7 +41,9 @@ export function convertLuDiagnostic(d: any, source: string): Diagnostic {
 export function convertLuParseResultToLuFile(id = '', resource): LuFile {
   // filter structured-object from LUParser result.
   // TODO: remove this once LUParser return pure data.
-  const { Sections, Errors, Content } = resource;
+  const { Sections, Errors, Content } = cloneDeepWith(resource, (value) => {
+    return isFunction(value) ? undefined : cloneDeep(value);
+  });
   const intents: LuIntentSection[] = [];
   Sections.forEach((section) => {
     const { Name, Body, SectionType } = section;
