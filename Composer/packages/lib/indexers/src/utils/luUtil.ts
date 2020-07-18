@@ -8,6 +8,8 @@
  */
 import { sectionHandler } from '@microsoft/bf-lu/lib/parser/composerindex';
 import isEmpty from 'lodash/isEmpty';
+import cloneDeep from 'lodash/cloneDeep';
+
 import get from 'lodash/get';
 import { LuFile, LuSectionTypes, LuIntentSection, Diagnostic, Position, Range, DiagnosticSeverity } from '@bfc/shared';
 
@@ -33,8 +35,7 @@ export function convertLuDiagnostic(d: any, source: string): Diagnostic {
   return result;
 }
 
-export function convertLuParseResultToLuFile(id = '', resource): LuFile {
-  const { Sections, Errors } = resource;
+export function convertLuParseResultToLuFile(id = '', { Sections, Errors, Content }): LuFile {
   const intents: LuIntentSection[] = [];
   Sections.forEach((section) => {
     const { Name, Body, SectionType } = section;
@@ -69,11 +70,11 @@ export function convertLuParseResultToLuFile(id = '', resource): LuFile {
   const diagnostics = Errors.map((e) => convertLuDiagnostic(e, id));
   return {
     id,
-    content: resource.Content,
+    content: Content,
     empty: !Sections.length,
     intents,
     diagnostics,
-    resource,
+    resource: { Sections, Errors, Content },
   };
 }
 
@@ -170,7 +171,7 @@ function updateInSections(
 export function updateIntent(luFile: LuFile, intentName: string, intent: LuIntentSection | null): LuFile {
   let targetSection;
   let targetSectionContent;
-  const { id, resource } = luFile;
+  const { id, resource } = cloneDeep(luFile);
 
   const updatedSectionContent = textFromIntent(intent);
   const { Sections } = resource;
@@ -244,7 +245,7 @@ export function addIntent(luFile: LuFile, { Name, Body, Entities }: LuIntentSect
  */
 
 export function removeIntent(luFile: LuFile, intentName: string): LuFile {
-  const { id, resource } = luFile;
+  const { id, resource } = cloneDeep(luFile);
   if (intentName.includes('/')) {
     return updateIntent(luFile, intentName, null);
   }
