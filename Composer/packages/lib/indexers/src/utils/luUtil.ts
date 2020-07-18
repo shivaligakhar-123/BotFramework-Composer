@@ -3,6 +3,7 @@
 
 /**
  * luUtil.ts is a single place use lu-parser handle lu file operation.
+ * Those methods should be implemented as pure function, shall not modify arguments.
  * it's designed have no state, input text file, output text file.
  * for more usage detail, please check client/__tests__/utils/luUtil.test.ts
  */
@@ -35,7 +36,10 @@ export function convertLuDiagnostic(d: any, source: string): Diagnostic {
   return result;
 }
 
-export function convertLuParseResultToLuFile(id = '', { Sections, Errors, Content }): LuFile {
+export function convertLuParseResultToLuFile(id = '', resource): LuFile {
+  // filter structured-object from LUParser result.
+  // TODO: remove this once LUParser return pure data.
+  const { Sections, Errors, Content } = resource;
   const intents: LuIntentSection[] = [];
   Sections.forEach((section) => {
     const { Name, Body, SectionType } = section;
@@ -171,6 +175,7 @@ function updateInSections(
 export function updateIntent(luFile: LuFile, intentName: string, intent: LuIntentSection | null): LuFile {
   let targetSection;
   let targetSectionContent;
+  // TODO: ensure LUParser not modify arguments, remove clone here later.
   const { id, resource } = cloneDeep(luFile);
 
   const updatedSectionContent = textFromIntent(intent);
