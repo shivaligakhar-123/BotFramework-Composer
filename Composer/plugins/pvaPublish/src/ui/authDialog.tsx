@@ -118,7 +118,7 @@ export const PVADialog: FC = () => {
   const onSelectBot = useCallback(
     (event, item: IDropdownOption) => {
       const botId = item.key + '';
-      const bot = mockBotsMap[env].find((bot) => bot.id === item.key);
+      const bot = mockBotsMap[env].find((bot) => bot.id === botId);
       // const bot = bots.find((bot) => bot.id === event.target.value);
       setBot(bot);
     },

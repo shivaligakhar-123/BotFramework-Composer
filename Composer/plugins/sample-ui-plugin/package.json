@@ -24,7 +24,7 @@
         "publish": {
           "bundleId": "publish"
         },
-        "page": {
+        "page-dont-show-me": {
           "bundleId": "page",
           "label": "Sample UI Plugin"
         }
