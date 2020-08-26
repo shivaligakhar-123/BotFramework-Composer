@@ -22,10 +22,12 @@
     }
   },
   "extendsComposer": true,
-  "description": "Publish bot to Power Virtual Agents (Preview)",
   "main": "dist/index.js",
   "dependencies": {
     "@bfc/client-plugin-lib": "file:../../packages/extensions/client-plugin-lib",
+    "@uifabric/icons": "7.3.59",
+    "@uifabric/react-hooks": "7.4.12",
+    "office-ui-fabric-react": "7.121.11",
     "react": "^16.13.0",
     "react-dom": "^16.13.0"
   },

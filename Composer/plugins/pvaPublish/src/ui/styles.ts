@@ -4,9 +4,12 @@
 import { CSSProperties } from 'react';
 
 export const root: CSSProperties = {
+  display: 'flex',
+  flexFlow: 'column nowrap',
+  height: '100%',
   position: 'relative',
   backgroundColor: 'white',
-  padding: '32px 0 32px 0',
+  padding: '0',
   fontFamily:
     '"Segoe UI", "Segoe UI Web (West European)", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif',
 };
