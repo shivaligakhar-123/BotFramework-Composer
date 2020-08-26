@@ -55,7 +55,6 @@ export class ComposerPluginRegistration {
   /**************************************************************************************
    * Publish related features
    *************************************************************************************/
-  // TODO (toanzian): add hasView to PublishPlugin type
   public async addPublishMethod(plugin: PublishPlugin) {
     log('registering publish method', this.name);
     this.loader.extensions.publish[plugin.customName || this.name] = {
@@ -63,6 +62,7 @@ export class ComposerPluginRegistration {
         name: plugin.customName || this.name,
         description: plugin.customDescription || this.description,
         instructions: plugin.instructions,
+        hasView: plugin.hasView,
         schema: plugin.schema,
       },
       methods: plugin,
