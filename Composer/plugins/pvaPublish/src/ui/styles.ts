@@ -6,7 +6,7 @@ import { CSSProperties } from 'react';
 export const root: CSSProperties = {
   display: 'flex',
   flexFlow: 'column nowrap',
-  height: '100%',
+  height: 'auto',
   position: 'relative',
   backgroundColor: 'white',
   padding: '0',

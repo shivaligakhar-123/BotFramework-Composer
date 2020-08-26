@@ -5,12 +5,12 @@ if (!document.getElementById('plugin-host-default-styles')) {
   styles.type = 'text/css';
   styles.appendChild(
     document.createTextNode(`
-  html, body { padding: 0; margin: 0; }
-  #plugin-root {
-    display: flex;
-    flex-flow: column nowrap;
-    height: 100%;
-  }
+      html, body { padding: 0; margin: 0; }
+      #plugin-root {
+        display: flex;
+        flex-flow: column nowrap;
+        height: auto;
+      }
   `)
   );
   document.head.appendChild(styles);

@@ -4,9 +4,12 @@ import { getAccessToken, setConfigIsValid, setPublishConfig, fetch } from '@bfc/
 import { Dropdown, IDropdownOption, ResponsiveMode } from 'office-ui-fabric-react/lib/Dropdown';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
+import { Stack } from 'office-ui-fabric-react/lib/Stack';
+import { Separator } from 'office-ui-fabric-react/lib/Separator';
 
-import { root, dropdown, label } from './styles';
+import { root } from './styles';
 import { Bot, BotEnvironment } from './types';
+import { Icon } from 'office-ui-fabric-react/lib/Icon';
 
 const API_VERSION = '1';
 const BASE_URL = `https://bots.sdf.customercareintelligence.net/api/botmanagement/v${API_VERSION}`;
@@ -15,7 +18,7 @@ const fetchEnvsWaitTime = 3000;
 const fetchBotsWaitTime = 1000;
 
 const mockEnvironments: Partial<BotEnvironment>[] = [
-  { id: '1', displayName: 'MS Personal Productivity (msdefault) (mesdefault)' },
+  { id: '1', displayName: 'MS Personal Productivity (msdefault)' },
   { id: '2', displayName: '__ Power Virtual Agents (MSFT employees)' },
   { id: '3', displayName: 'Bot Framework Power Apps' },
 ];
@@ -90,22 +93,14 @@ export const PVADialog: FC = () => {
   useEffect(() => {
     if (tenantId) {
       // get environments for tenant id
-      // const url = `${BASE_URL}/environments`;
       const fetchEnvs = async () => {
-        // const headers = pvaHeaders;
         setFetchingEnvironments(true);
-        // const res = await fetch(url, { method: 'GET', headers });
-        // const envs = await res.json();
         await new Promise((resolve) => {
           // fake waiting for API call
           setTimeout(resolve, fetchEnvsWaitTime);
         });
         setFetchingEnvironments(false);
         setEnvs(mockEnvironments as BotEnvironment[]);
-        // setEnvs(envs);
-        // if (envs && envs.length) {
-        //   setEnv(envs[0]);
-        // }
       };
       fetchEnvs();
     }
@@ -119,7 +114,6 @@ export const PVADialog: FC = () => {
     (event, item: IDropdownOption) => {
       const botId = item.key + '';
       const bot = mockBotsMap[env].find((bot) => bot.id === botId);
-      // const bot = bots.find((bot) => bot.id === event.target.value);
       setBot(bot);
     },
     [bots, env]
@@ -128,23 +122,14 @@ export const PVADialog: FC = () => {
   useEffect(() => {
     if (env) {
       // get bots for environment
-      // const url = `${BASE_URL}/environments/${encodeURIComponent(env)}/bots`;
       const fetchBots = async () => {
-        // const headers = pvaHeaders;
         setFetchingBots(true);
-        // const res = await fetch(url, { method: 'GET', headers });
-        // const bots = await res.json();
         await new Promise((resolve) => {
           // fake waiting for API call
           setTimeout(resolve, fetchBotsWaitTime);
         });
         setFetchingBots(false);
         setBots(mockBotsMap[env]);
-        // if (bots && bots.length) {
-        //   setBot(bots[0]);
-        // } else {
-        //   setBot(null);
-        // }
       };
       fetchBots();
     }
@@ -162,39 +147,6 @@ export const PVADialog: FC = () => {
   const loggedIn = useMemo(() => {
     return !!token && !!tenantId;
   }, [tenantId, token]);
-
-  const loginButton = useMemo(() => {
-    if (!loggedIn) {
-      return (
-        <PrimaryButton
-          text={'Login to PVA'}
-          onClick={login}
-          styles={{
-            root: { backgroundColor: pvaBranding, marginTop: 20, border: 0, maxWidth: 150 },
-            rootHovered: { backgroundColor: pvaBrandingHover, border: 0 },
-            rootPressed: { backgroundColor: pvaBrandingClick, border: 0 },
-          }}
-        />
-      );
-    }
-  }, [loggedIn]);
-
-  const loginStatusMessage = useMemo(() => {
-    if (loggingIn) {
-      return (
-        <Spinner
-          size={SpinnerSize.medium}
-          labelPosition={'right'}
-          label={'Logging in...'}
-          style={{ marginTop: 16, marginRight: 'auto' }}
-        />
-      );
-    }
-    if (!loggedIn) {
-      return null;
-      // return <p>Please login</p>;
-    }
-  }, [loggedIn, loggingIn]);
 
   const envPicker = useMemo(() => {
     if (loggedIn) {
@@ -265,30 +217,67 @@ export const PVADialog: FC = () => {
     }
   }, [loggedIn, fetchingEnvironments, env, fetchingBots, bots]);
 
-  const branding = (
-    <span style={{ marginTop: 'auto', display: 'flex', flexFlow: 'row nowrap', alignItems: 'center' }}>
-      <i
-        style={{
-          display: 'inline-block',
-          bottom: 0,
-          left: 0,
-          width: 30,
-          height: 30,
-          backgroundImage:
-            'url("https://cci-prod-botdesigner.azureedge.net/20200818.7/ppux/0.0.20200818.1-ppux-ppe-2020-08-12-prod/static/media/NewBotIcon.e05db014.svg")',
-        }}
-      ></i>
-      <p style={{ paddingLeft: 8, fontSize: 15 }}>Power Virtual Agents</p>
-    </span>
-  );
+  const loginSplash = useMemo(() => {
+    if (!loggedIn) {
+      const loginButton = loggingIn ? (
+        <Spinner size={SpinnerSize.medium} labelPosition={'right'} label={'Logging in...'} style={{ marginTop: 16 }} />
+      ) : (
+        <PrimaryButton
+          onClick={login}
+          styles={{
+            root: { backgroundColor: pvaBranding, marginTop: 20, border: 0, maxWidth: 200 },
+            rootHovered: { backgroundColor: pvaBrandingHover, border: 0 },
+            rootPressed: { backgroundColor: pvaBrandingClick, border: 0 },
+          }}
+        >
+          Login to proceed{' '}
+          <Icon iconName={'ChevronRight'} color={'#FFF'} styles={{ root: { fontSize: '11px', marginLeft: 10 } }} />
+        </PrimaryButton>
+      );
+      return (
+        <Stack horizontalAlign={'center'}>
+          <p
+            style={{
+              width: '100%',
+              textAlign: 'center',
+              backgroundColor: pvaBranding,
+              padding: '8px 0',
+              color: '#FFF',
+              fontWeight: 500,
+            }}
+          >
+            Power Virtual Agents
+          </p>
+          <Separator styles={{ root: { width: '50%' } }} />
+          <p style={{ textAlign: 'center', fontWeight: 500 }}>
+            Publish your bot assets from Composer directly into Power Virtual Agents.
+          </p>
+          <i
+            style={{
+              display: 'inline-block',
+              bottom: 0,
+              left: 0,
+              width: 30,
+              height: 30,
+              backgroundImage:
+                'url("https://cci-prod-botdesigner.azureedge.net/20200818.7/ppux/0.0.20200818.1-ppux-ppe-2020-08-12-prod/static/media/NewBotIcon.e05db014.svg")',
+            }}
+          ></i>
+          <Stack horizontalAlign={'start'}>
+            <p>1. Select an environment containing your bot</p>
+            <p>2. Select the bot you wish to publish to</p>
+          </Stack>
+          {loginButton}
+        </Stack>
+      );
+    }
+  }, [loggedIn, loggingIn]);
 
   return (
     <div style={root}>
-      {loginButton}
-      {loginStatusMessage}
+      {loginSplash}
       {envPicker}
       {botPicker}
-      {branding}
     </div>
   );
 };
