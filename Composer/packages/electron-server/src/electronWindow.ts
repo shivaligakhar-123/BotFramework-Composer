@@ -68,7 +68,7 @@ export default class ElectronWindow {
 
   /** Returns true if the url starts with http or https */
   private isExternalLink(url: string): boolean {
-    return /^http(s)?:\/\//.test(url);
+    return /^(http(s)?|bfemulator):\/\//.test(url);
   }
 
   /** Intercepts any requests to open a new browser window (window.open or <a target="_blank">) */

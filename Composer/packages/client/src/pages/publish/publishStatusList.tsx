@@ -16,6 +16,7 @@ import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
 import { Selection } from 'office-ui-fabric-react/lib/DetailsList';
 import { Icon } from 'office-ui-fabric-react/lib/Icon';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
+import { Link } from 'office-ui-fabric-react/lib/Link';
 import moment from 'moment';
 import { useMemo, useState, useEffect } from 'react';
 import formatMessage from 'format-message';
@@ -31,6 +32,7 @@ export interface IStatusListProps {
 
 export interface IStatus {
   id: string;
+  link: { href: string; text: string };
   time: string;
   status: number;
   message: string;
@@ -68,8 +70,8 @@ export const PublishStatusList: React.FC<IStatusListProps> = (props) => {
       name: formatMessage('Time'),
       className: 'publishtime',
       fieldName: 'time',
-      minWidth: 70,
-      maxWidth: 90,
+      minWidth: 50,
+      maxWidth: 70,
       isRowHeader: true,
       isResizable: true,
       data: 'string',
@@ -99,8 +101,8 @@ export const PublishStatusList: React.FC<IStatusListProps> = (props) => {
       name: formatMessage('Status'),
       className: 'publishstatus',
       fieldName: 'status',
-      minWidth: 70,
-      maxWidth: 90,
+      minWidth: 25,
+      maxWidth: 30,
       isResizable: true,
       data: 'string',
       onRender: (item: IStatus) => {
@@ -123,14 +125,26 @@ export const PublishStatusList: React.FC<IStatusListProps> = (props) => {
       name: formatMessage('Message'),
       className: 'publishmessage',
       fieldName: 'message',
-      minWidth: 70,
-      maxWidth: 90,
+      minWidth: 200,
+      maxWidth: 250,
       isResizable: true,
       isCollapsible: true,
       isMultiline: true,
       data: 'string',
       onRender: (item: IStatus) => {
-        return <span>{item.message}</span>;
+        let link;
+        if (item.link) {
+          link = (
+            <Link target="_blank" href={item.link.href}>
+              {item.link.text}
+            </Link>
+          );
+        }
+        return (
+          <span>
+            {item.message} {link}
+          </span>
+        );
       },
       isPadded: true,
     },
@@ -139,8 +153,8 @@ export const PublishStatusList: React.FC<IStatusListProps> = (props) => {
       name: formatMessage('Comment'),
       className: 'comment',
       fieldName: 'comment',
-      minWidth: 70,
-      maxWidth: 90,
+      minWidth: 40,
+      maxWidth: 100,
       isResizable: true,
       isCollapsible: true,
       isMultiline: true,
