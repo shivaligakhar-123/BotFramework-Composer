@@ -1,6 +1,6 @@
 /** @jsx jsx */
-import { jsx, css } from '@emotion/core';
-import React, { useEffect, useState } from 'react';
+import { jsx } from '@emotion/core';
+import { useEffect, useState } from 'react';
 import { FC } from 'react';
 import { RouteComponentProps } from '@reach/router';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
