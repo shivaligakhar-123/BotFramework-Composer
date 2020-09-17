@@ -316,7 +316,8 @@ export const projectDispatcher = () => {
       location: string,
       schemaUrl?: string,
       locale?: string,
-      qnaKbUrls?: string[]
+      qnaKbUrls?: string[],
+      templateDir?: string
     ) => {
       try {
         await setBotOpeningStatus(callbackHelpers);
@@ -328,6 +329,7 @@ export const projectDispatcher = () => {
           location,
           schemaUrl,
           locale,
+          templateDir,
         });
         const projectId = response.data.id;
         if (settingStorage.get(projectId)) {

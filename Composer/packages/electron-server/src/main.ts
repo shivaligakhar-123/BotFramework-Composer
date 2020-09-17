@@ -47,7 +47,9 @@ if (app.isPackaged) {
 log(`${process.env.NODE_ENV} environment detected.`);
 
 function processArgsForWindows(args: string[]): string {
-  args.push('bfcomposer://import?source=pva&payload=%7B%22val1%22%3A1%2C%22val2%22%3A%22two%22%2C%22val3%22%3Atrue%7D');
+  args.push(
+    'bfcomposer://import?source=pva&payload=%7B%22url%22%3A%22https%3A%2F%2Fpowerva.microsoft.com%2Fapi%2Fpublish%22%2C%22name%22%3A%22my-pva-bot%22%2C%22description%22%3A%22This%20is%20some%20description%20about%20my%20PVA%20bot%20%3A)%22%7D'
+  );
   const deepLinkUrl = args.find((arg) => arg.startsWith(composerProtocol));
   if (deepLinkUrl) {
     return parseDeepLinkUrl(deepLinkUrl);

@@ -83,7 +83,7 @@ router.get('/extensions/:id/view/:view', ExtensionsController.getBundleForView);
 router.post('/extensions/proxy/:url', ExtensionsController.performExtensionFetch);
 
 // importing
-router.post('/import/:source/:payload', ImportController.startImport);
+router.post('/import/:source', ImportController.startImport);
 
 const errorHandler = (handler: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(handler(req, res, next)).catch(next);

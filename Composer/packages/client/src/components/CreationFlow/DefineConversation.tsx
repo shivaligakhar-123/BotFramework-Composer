@@ -66,6 +66,8 @@ interface DefineConversationFormData {
   description: string;
   schemaUrl: string;
   location?: string;
+
+  templateDir?: string; // location of the imported template
 }
 
 interface DefineConversationProps
@@ -189,9 +191,22 @@ const DefineConversation: React.FC<DefineConversationProps> = (props) => {
         return;
       }
 
+      // handle extra properties in the case of an imported bot project
+      const dataToSubmit = {
+        ...formData,
+      };
+      if (props.location?.search) {
+        const decoded = decodeURIComponent(props.location.search);
+        const { imported, templateDir } = querystring.parse(decoded);
+
+        if (imported && templateDir) {
+          dataToSubmit.templateDir = templateDir as string;
+        }
+      }
+
       onSubmit(
         {
-          ...formData,
+          ...dataToSubmit,
         },
         templateId || ''
       );

@@ -109,7 +109,8 @@ const CreationFlow: React.FC<CreationFlowProps> = () => {
       formData.location,
       formData.schemaUrl,
       appLocale,
-      qnaKbUrls
+      qnaKbUrls,
+      formData.templateDir
     );
   };
 
