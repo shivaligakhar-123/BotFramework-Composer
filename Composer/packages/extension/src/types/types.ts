@@ -38,7 +38,13 @@ export interface BotTemplate {
 // TODO: Add types for project, metadata
 export interface PublishPlugin<Config = any> {
   // methods plugins should support
-  publish: (config: Config, project: IBotProject, metadata: any, user?: UserIdentity) => Promise<PublishResponse>;
+  publish: (
+    config: Config,
+    project: IBotProject,
+    metadata: any,
+    user?: UserIdentity,
+    accessToken?: string
+  ) => Promise<PublishResponse>;
   getStatus?: (config: Config, project: IBotProject, user?: UserIdentity) => Promise<PublishResponse>;
   getHistory?: (config: Config, project: IBotProject, user?: UserIdentity) => Promise<PublishResult[]>;
   rollback?: (
@@ -55,6 +61,7 @@ export interface PublishPlugin<Config = any> {
   customDescription?: string;
   hasView?: boolean;
   [key: string]: any;
+  auth?: { clientId: string; scopes: string[] };
 }
 
 export const DEFAULT_RUNTIME = 'csharp-azurewebapp';

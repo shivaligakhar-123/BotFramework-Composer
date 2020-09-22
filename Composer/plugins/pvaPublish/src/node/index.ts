@@ -13,16 +13,12 @@ function initialize(registration) {
     history,
     getStatus,
     publish,
+    auth: {
+      clientId: 'ce48853e-0605-4f77-8746-d70ac63cc6bc',
+      scopes: ['a522f059-bb65-47c0-8934-7db6e5286414/.default'], // int / ppe
+    },
   };
   registration.addPublishMethod(plugin);
-}
-
-interface BotPublishHistory {
-  [botId: string]: PublishJobRecord;
-}
-
-interface PublishJobRecord {
-  [profileName: string]: PublishJob[];
 }
 
 interface PublishJob {
@@ -37,118 +33,27 @@ interface PublishJob {
   success: boolean;
 }
 
-const mockPublishCompletionTime = 1000 * 20; // 20 seconds
-
-class PublishJobManager {
-  private history: BotPublishHistory;
-
-  constructor() {
-    this.history = {};
-  }
-
-  public startPublishJob(botId: string, profileName: string, bot: any, env: string, comment?: string): PublishJob {
-    const job: PublishJob = {
-      id: globalJobId++,
-      comment,
-      complete: false,
-      lastUpdated: new Date(),
-      logMessages: [],
-      message: 'Publish in progress...',
-      success: false,
-      status: 202,
-    };
-    job.logMessages.push(`Publishing started for bot ${bot.name} in environment: ${env}`);
-
-    if (!this.history[botId]) {
-      this.history[botId] = {}; // init job record for bot
-    }
-    if (!this.history[botId][profileName]) {
-      // init history for profile name
-      this.history[botId][profileName] = [];
-    }
-    this.history[botId][profileName].push(job);
-
-    // start fake wait for job completion
-    setTimeout(() => this.completePublishJob(botId, profileName), mockPublishCompletionTime);
-
-    return job;
-  }
-
-  public getJobStatus(botId: string, profileName: string): PublishJob {
-    if (this.history && this.history[botId] && this.history[botId][profileName]) {
-      const jobsForProfile = this.history[botId][profileName];
-      return jobsForProfile[jobsForProfile.length - 1];
-    } else {
-      return undefined;
-    }
-  }
-
-  public getProfileHistory(botId: string, profileName: string): PublishJob[] {
-    if (this.history && this.history[botId] && this.history[botId][profileName]) {
-      const jobsForProfile = this.history[botId][profileName];
-      return jobsForProfile;
-    } else {
-      return undefined;
-    }
-  }
-
-  private completePublishJob(botId: string, profileName: string) {
-    const jobsForProfile = this.history[botId][profileName];
-    const updatedJob: PublishJob = {
-      ...jobsForProfile[jobsForProfile.length - 1],
-      complete: true,
-      success: true,
-      link: {
-        href: `bfemulator://livechat.open?botUrl=${encodeURIComponent('http://localhost:3978/api/messages')}`,
-        text: 'Test in Emulator',
-      },
-      message: 'Publish successful.',
-      lastUpdated: new Date(),
-      status: 200,
-    };
-    const intermediateLogMessages = [
-      'Unzipping bot contents...',
-      'Unzipping bot contents complete.',
-      'Parsing bot contents...',
-      'Successfully parsed bot contents.',
-      'Validating bot contents...',
-      'Validation complete. Bot contents are valid.',
-      'Writing bot contents to Power Virtual Agents storage...',
-      'Bot contents successfully written.',
-      'Publish successful.',
-    ];
-    updatedJob.logMessages.push(...intermediateLogMessages);
-    jobsForProfile[jobsForProfile.length - 1] = updatedJob;
-  }
-}
-
-const manager = new PublishJobManager();
-
-// some number between 1000 & 11000
-let globalJobId = +(Math.random() * 10000 + 1000).toFixed(0);
-
-const publish = async (config: PublishConfig, project: IBotProject, metadata, user) => {
+const publish = async (config: PublishConfig, project: IBotProject, metadata, user, accessToken) => {
   const {
     // these are provided by Composer
     profileName, // the name of the publishing profile "My PVA Prod Slot"
 
     // these are specific to the PVA publish profile shape
-    bot,
-    env,
+    botId,
+    envId,
+    tenantId,
+    deleteMissingDependencies, // publish behavior
   } = config;
+  console.log('got access token in plugin: ', accessToken);
 
-  // get the bot id from the project
-  const botId = project.id;
-
-  const job = manager.startPublishJob(botId, profileName, bot, env, metadata.comment);
   const response = {
-    status: job.status,
+    status: '',
     result: {
-      id: job.id,
-      time: job.lastUpdated,
+      id: '',
+      time: '',
       message: 'Publish accepted.',
-      log: job.logMessages.join('\n'),
-      comment: job.comment,
+      log: '',
+      comment: '',
     },
   };
   return response;
@@ -158,28 +63,17 @@ const getStatus = async (config: PublishConfig, project: IBotProject, user) => {
   const profileName = config.profileName;
   const botId = project.id;
 
-  const job = manager.getJobStatus(botId, profileName);
-
-  if (!job) {
-    return {
-      status: 404,
-      result: {
-        message: 'Cannot find job for bot and target combination.',
-      },
-    };
-  } else {
-    return {
-      status: job.status,
-      result: {
-        id: job.id,
-        link: job.link,
-        log: job.logMessages.join('\n'),
-        time: job.lastUpdated,
-        message: job.message,
-        comment: job.comment,
-      },
-    };
-  }
+  return {
+    status: '',
+    result: {
+      id: '',
+      link: '',
+      log: '',
+      time: '',
+      message: '',
+      comment: '',
+    },
+  };
 };
 
 const history = async (config: PublishConfig, project: IBotProject, user) => {
@@ -188,57 +82,16 @@ const history = async (config: PublishConfig, project: IBotProject, user) => {
     profileName, // the name of the publishing profile "My PVA Prod Slot"
 
     // these are specific to the PVA publish profile shape
-    bot,
-    env,
+    botId,
+    envId,
+    tenantId,
+    deleteMissingDependencies,
   } = config;
 
-  // get the bot id from the project
-  const botId = project.id;
-  return manager.getProfileHistory(botId, profileName);
-  // const today = new Date();
-  // const history = [
-  //   {
-  //     time: new Date().setDate(today.getDate() - 4) + 1000 * 60 * 111, // 4 days ago
-  //     status: 200,
-  //     message: 'Publish successful.',
-  //     comment: 'Updated schedule meeting dialog',
-  //     link: {
-  //       href: `bfemulator://livechat.open?botUrl=${encodeURIComponent('http://localhost:3978/api/messages')}`,
-  //       text: 'Test in Emulator',
-  //     },
-  //     log: '',
-  //   },
-  //   {
-  //     time: new Date().setDate(today.getDate() - 1) + 1000 * 60 * 43,
-  //     status: 200,
-  //     message: 'Publish successful.',
-  //     comment: 'Applied feedback to greeting message',
-  //     link: {
-  //       href: `bfemulator://livechat.open?botUrl=${encodeURIComponent('http://localhost:3978/api/messages')}`,
-  //       text: 'Test in Emulator',
-  //     },
-  //     log: '',
-  //   },
-  //   {
-  //     time: new Date().setDate(today.getDate() - 2) - 1000 * 60 * 54,
-  //     status: 500,
-  //     message: 'Server timed out while trying to publish. Please try again.',
-  //     comment: 'Design update',
-  //     log: '',
-  //   },
-  //   {
-  //     time: new Date().setDate(today.getDate() - 2) - 1000 * 60 * 52,
-  //     status: 200,
-  //     message: 'Publish successful.',
-  //     comment: 'Design update attempt 2',
-  //     link: {
-  //       href: `bfemulator://livechat.open?botUrl=${encodeURIComponent('http://localhost:3978/api/messages')}`,
-  //       text: 'Test in Emulator',
-  //     },
-  //     log: '',
-  //   },
-  // ];
-  // return history;
+  return {
+    status: 200,
+    result: {},
+  };
 };
 
 module.exports = {

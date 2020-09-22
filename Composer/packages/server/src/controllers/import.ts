@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { join, normalize } from 'path';
+import { join } from 'path';
 import { createWriteStream } from 'fs';
 import fetch from 'node-fetch';
 import { mkdirSync, existsSync } from 'fs-extra';
@@ -15,20 +15,29 @@ interface StartImportRequest extends Request {
     source: string;
   };
   query: {
+    accessToken: string;
     payload: string;
   };
 }
 
 async function startImport(req: StartImportRequest, res: Response, next) {
   const { source } = req.params;
-  const payload = req.query.payload;
+  const { accessToken, payload } = req.query;
   const parsedPayload: ImportPayload = JSON.parse(payload);
   console.log('starting import for: ', payload, source);
 
   // go get the .zip from the url
   const { url = '' } = parsedPayload;
   console.log(url);
-  const result = await fetch('https://github.com/tonyanziano/FigUI/archive/master.zip');
+  const tenantId = '72f988bf-86f1-41af-91ab-2d7cd011db47';
+  const result = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'X-CCI-TenantId': tenantId,
+      'X-CCI-Routing-TenantId': tenantId,
+    },
+  });
   const contentType = result.headers.get('content-type');
   if (!contentType || contentType !== 'application/zip') {
     console.error('Invalid content type header! Must be application/zip');
@@ -62,10 +71,8 @@ async function startImport(req: StartImportRequest, res: Response, next) {
     console.error('Error extracting zip: ', e);
   }
 
-  const newTemplateDir = normalize('C:\\Users\\tonya\\Desktop\\mock-pva-assets');
-
   setTimeout(() => {
-    res.json({ templateDir: newTemplateDir, templateName: parsedPayload.templateName });
+    res.json({ templateDir, templateName: parsedPayload.templateName });
   }, 2000);
 }
 

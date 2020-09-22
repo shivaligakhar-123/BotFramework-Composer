@@ -19,6 +19,8 @@ import { botEndpointsState } from '../atoms';
 import { BotStatus, Text } from './../../constants';
 import httpClient from './../../utils/httpUtil';
 import { logMessage, setError } from './shared';
+import { OAuthClient } from '../../utils/oauthClient';
+import { OAuthOptions } from '@bfc/extension-client/lib/auth/types';
 
 const PUBLISH_SUCCESS = 200;
 const PUBLISH_PENDING = 202;
@@ -122,9 +124,17 @@ export const publisherDispatcher = () => {
   const publishToTarget = useRecoilCallback(
     (callbackHelpers: CallbackInterface) => async (projectId: string, target: any, metadata, sensitiveSettings) => {
       try {
+        const auth = await httpClient.get(`/publish/${projectId}/publish/${target.name}/auth`); // check if the plugin needs to authenticate before publishing
+        let accessToken;
+        if (auth.data) {
+          // we need to get a token before trying to publish
+          const client = new OAuthClient(auth.data as OAuthOptions);
+          accessToken = await client.getTokenSilently();
+        }
         const response = await httpClient.post(`/publish/${projectId}/publish/${target.name}`, {
           metadata,
           sensitiveSettings,
+          accessToken,
         });
         await publishSuccess(callbackHelpers, projectId, response.data, target);
       } catch (err) {

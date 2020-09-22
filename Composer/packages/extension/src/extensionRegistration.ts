@@ -66,6 +66,7 @@ export class ExtensionRegistration {
         instructions: plugin.instructions,
         hasView: plugin.hasView,
         schema: plugin.schema,
+        auth: plugin.auth,
       },
       methods: plugin,
     };

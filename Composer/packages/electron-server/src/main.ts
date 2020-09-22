@@ -47,9 +47,16 @@ if (app.isPackaged) {
 log(`${process.env.NODE_ENV} environment detected.`);
 
 function processArgsForWindows(args: string[]): string {
-  args.push(
-    'bfcomposer://import?source=pva&payload=%7B%22url%22%3A%22https%3A%2F%2Fpowerva.microsoft.com%2Fapi%2Fpublish%22%2C%22name%22%3A%22my-pva-bot%22%2C%22description%22%3A%22This%20is%20some%20description%20about%20my%20PVA%20bot%20%3A)%22%7D'
-  );
+  const baseUri = 'https://bots.int.customercareintelligence.net'; // int = test environment
+  const envId = '40c6f77b-8fc6-4bbd-9bdc-2d4a941ef0b8';
+  const botId = '8e2f2bff-7534-45b2-9343-2aa12e12af98';
+  const url = `${baseUri}/api/botmanagement/v1/environments/${envId}/bots/${botId}/composer/content`;
+  const payload = {
+    url,
+    name: 'my-pva-bot',
+    description: 'This describes my PVA bot :)',
+  };
+  args.push(`bfcomposer://import?source=pva&payload=${encodeURIComponent(JSON.stringify(payload))}`);
   const deepLinkUrl = args.find((arg) => arg.startsWith(composerProtocol));
   if (deepLinkUrl) {
     return parseDeepLinkUrl(deepLinkUrl);
