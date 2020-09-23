@@ -123,7 +123,7 @@ export const PVADialog: FC = () => {
     } else {
       setConfigIsValid(false);
     }
-    setPublishConfig({ botId: (bot || {}).id, envId: env, tenantId, deleteMissingDependencies: true });
+    setPublishConfig({ botId: (bot || {}).id, envId: env, tenantId, deleteMissingComponents: true });
   }, [env, bot, tenantId]);
 
   const loggedIn = useMemo(() => {

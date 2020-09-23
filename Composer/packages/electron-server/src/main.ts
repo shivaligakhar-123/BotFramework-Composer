@@ -162,7 +162,7 @@ async function loadServer() {
 
   log('Starting server...');
   const { start } = await import('@bfc/server');
-  serverPort = await start();
+  serverPort = await start({ getAccessToken, loginAndGetIdToken });
   log(`Server started at port: ${serverPort}`);
 }
 

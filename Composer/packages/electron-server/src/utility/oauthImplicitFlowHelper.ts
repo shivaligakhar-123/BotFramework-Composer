@@ -39,7 +39,7 @@ export interface OAuthTokenOptions extends OAuthLoginOptions {
 }
 
 function getLoginUrl(options: OAuthLoginOptions): string {
-  const { clientId, redirectUri, scopes = [] } = options;
+  const { clientId, redirectUri = composerRedirectUri, scopes = [] } = options;
   if (scopes.indexOf('openid') === -1) {
     scopes.push('openid');
   }
@@ -61,7 +61,7 @@ function getLoginUrl(options: OAuthLoginOptions): string {
 }
 
 export function getAccessTokenUrl(options: OAuthTokenOptions): string {
-  const { clientId, idToken, redirectUri, scopes = [] } = options;
+  const { clientId, idToken, redirectUri = composerRedirectUri, scopes = [] } = options;
   const params = [
     `client_id=${encodeURIComponent(clientId)}`,
     `response_type=token`,

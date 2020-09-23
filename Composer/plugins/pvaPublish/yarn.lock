@@ -5,7 +5,7 @@
 "@bfc/extension-client@file:../../packages/extension-client":
   version "1.0.0"
   dependencies:
-    "@bfc/shared" "file:../../../../../../scoop/apps/yarn/current/cache/v6/npm-@bfc-extension-client-1.0.0-8adb8b8a-c58f-4a2e-9bb5-8a151fbb21a2-1600386462923/node_modules/@bfc/lib/shared"
+    "@bfc/shared" "file:../../../../../../scoop/apps/yarn/current/cache/v6/npm-@bfc-extension-client-1.0.0-e10c7046-bed5-4690-a8d2-ed1440c348fd-1600807656201/node_modules/@bfc/lib/shared"
     debug "^4.1.1"
     lodash "^4.17.19"
 
@@ -91,6 +91,11 @@
   version "14.10.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.10.1.tgz#cc323bad8e8a533d4822f45ce4e5326f36e42177"
   integrity sha512-aYNbO+FZ/3KGeQCEkNhHFRIzBOUgc7QvcVNKXbfnhDkSfwUv91JsQQa10rDgKSTSLkXZ1UIyPe4FJJNVgw1xWQ==
+
+"@types/node@^14.11.2":
+  version "14.11.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.11.2.tgz#2de1ed6670439387da1c9f549a2ade2b0a799256"
+  integrity sha512-jiE3QIxJ8JLNcb1Ps6rDbysDhN4xa8DJJvuC9prr6w+1tIh+QAbYyNF3tyiZNLDBIuBCf4KEcV2UvQm/V60xfA==
 
 "@types/source-list-map@*":
   version "0.1.2"

@@ -43,7 +43,7 @@ export interface PublishPlugin<Config = any> {
     project: IBotProject,
     metadata: any,
     user?: UserIdentity,
-    accessToken?: string
+    authHelpers?: any // TODO: type these
   ) => Promise<PublishResponse>;
   getStatus?: (config: Config, project: IBotProject, user?: UserIdentity) => Promise<PublishResponse>;
   getHistory?: (config: Config, project: IBotProject, user?: UserIdentity) => Promise<PublishResult[]>;
@@ -61,7 +61,6 @@ export interface PublishPlugin<Config = any> {
   customDescription?: string;
   hasView?: boolean;
   [key: string]: any;
-  auth?: { clientId: string; scopes: string[] };
 }
 
 export const DEFAULT_RUNTIME = 'csharp-azurewebapp';

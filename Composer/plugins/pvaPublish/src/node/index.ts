@@ -1,5 +1,13 @@
 import { IBotProject } from '@bfc/shared';
 
+const API_VERSION = '1';
+//const BASE_URL = `https://powerva.microsoft.com/api/botmanagement/v${API_VERSION}`; // prod / sdf
+const BASE_URL = `https://bots.int.customercareintelligence.net/api/botmanagement/v${API_VERSION}`; // int / ppe
+const auth = {
+  clientId: 'ce48853e-0605-4f77-8746-d70ac63cc6bc',
+  scopes: ['a522f059-bb65-47c0-8934-7db6e5286414/.default'], // int / ppe
+};
+
 interface PublishConfig {
   fullSettings: any;
   profileName: string;
@@ -13,10 +21,6 @@ function initialize(registration) {
     history,
     getStatus,
     publish,
-    auth: {
-      clientId: 'ce48853e-0605-4f77-8746-d70ac63cc6bc',
-      scopes: ['a522f059-bb65-47c0-8934-7db6e5286414/.default'], // int / ppe
-    },
   };
   registration.addPublishMethod(plugin);
 }
@@ -33,7 +37,13 @@ interface PublishJob {
   success: boolean;
 }
 
-const publish = async (config: PublishConfig, project: IBotProject, metadata, user, accessToken) => {
+const publish = async (
+  config: PublishConfig,
+  project: IBotProject,
+  metadata,
+  user,
+  { getAccessToken, loginAndGetIdToken }
+) => {
   const {
     // these are provided by Composer
     profileName, // the name of the publishing profile "My PVA Prod Slot"
@@ -42,21 +52,47 @@ const publish = async (config: PublishConfig, project: IBotProject, metadata, us
     botId,
     envId,
     tenantId,
-    deleteMissingDependencies, // publish behavior
+    deleteMissingComponents, // publish behavior
   } = config;
-  console.log('got access token in plugin: ', accessToken);
+  const { comment = '' } = metadata;
 
-  const response = {
-    status: '',
-    result: {
-      id: '',
-      time: '',
-      message: 'Publish accepted.',
-      log: '',
-      comment: '',
-    },
-  };
-  return response;
+  const url = `${BASE_URL}/environments/${envId}/bots/${botId}/composer/publishoperations?deleteMissingComponents=${deleteMissingComponents}&comment=${encodeURIComponent(
+    comment
+  )}`;
+  try {
+    const idToken = await loginAndGetIdToken(auth);
+    const accessToken = await getAccessToken({ ...auth, idToken });
+    console.log('got token: ', accessToken);
+    let res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'X-CCI-TenantId': tenantId,
+        'X-CCI-Routing-TenantId': tenantId,
+      },
+    });
+    res = await res.json();
+
+    // const response = {
+    //   status: '',
+    //   result: {
+    //     id: '',
+    //     time: '',
+    //     message: 'Publish accepted.',
+    //     log: '',
+    //     comment: '',
+    //   },
+    // };
+    // return response;
+    return res;
+  } catch (e) {
+    return {
+      status: 500,
+      result: {
+        message: e.message,
+      },
+    };
+  }
 };
 
 const getStatus = async (config: PublishConfig, project: IBotProject, user) => {

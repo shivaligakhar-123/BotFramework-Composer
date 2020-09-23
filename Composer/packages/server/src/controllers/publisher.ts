@@ -6,6 +6,7 @@ import { ExtensionContext } from '@bfc/extension';
 import { defaultPublishConfig } from '@bfc/shared';
 
 import { BotProjectService } from '../services/project';
+import { useElectronContext } from '../utility/electronContext';
 
 export const PublishController = {
   getTypes: async (req, res) => {
@@ -59,7 +60,11 @@ export const PublishController = {
 
       try {
         // call the method
-        const results = await pluginMethod.call(null, configuration, currentProject, metadata, user, accessToken);
+        const { getAccessToken, loginAndGetIdToken } = useElectronContext();
+        const results = await pluginMethod.call(null, configuration, currentProject, metadata, user, {
+          getAccessToken,
+          loginAndGetIdToken,
+        });
 
         // copy status into payload for ease of access in client
         const response = {
@@ -266,41 +271,6 @@ export const PublishController = {
         }
       }
     }
-    res.status(400).json({
-      statusCode: '400',
-      message: `${method} is not a valid publishing target type. There may be a missing plugin.`,
-    });
-  },
-
-  getAuth: async (req, res) => {
-    const target = req.params.target; // name of the publishing target
-    const user = await PluginLoader.getUserFromRequest(req);
-    const projectId = req.params.projectId;
-    const currentProject = await BotProjectService.getProjectById(projectId, user);
-
-    const publishTargets = currentProject.settings?.publishTargets || [];
-    const allTargets = [defaultPublishConfig, ...publishTargets];
-
-    // get a list of profiles for the publish target
-    const profiles = allTargets.filter((t) => t.name === target);
-    const profile = profiles.length ? profiles[0] : undefined;
-    // get the publish plugin key
-    const method = profile ? profile.type : undefined; // this is the publish target type (ex: pva-publish)
-    if (
-      profile &&
-      method &&
-      pluginLoader.extensions.publish[method] &&
-      pluginLoader.extensions.publish[method].plugin
-    ) {
-      const authInfo = pluginLoader.extensions.publish[method].plugin.auth;
-      if (authInfo) {
-        return res.status(200).json(authInfo);
-      } else {
-        // no auth needed
-        res.status(200).send(undefined);
-      }
-    }
-    // lookup failed
     res.status(400).json({
       statusCode: '400',
       message: `${method} is not a valid publishing target type. There may be a missing plugin.`,
