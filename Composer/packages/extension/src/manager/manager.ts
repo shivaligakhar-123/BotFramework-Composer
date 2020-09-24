@@ -241,8 +241,8 @@ class ExtensionManager {
       const extensionInstallPath = path.dirname(fullPath);
       const packageJson = (await readJson(fullPath)) as PackageJSON;
       const isEnabled = packageJson?.composer && packageJson.composer.enabled !== false;
-      const metadata = getExtensionMetadata(extensionInstallPath, packageJson);
       if (packageJson && (isEnabled || packageJson.extendsComposer === true)) {
+        const metadata = getExtensionMetadata(extensionInstallPath, packageJson);
         this.manifest.updateExtensionConfig(packageJson.name, {
           ...metadata,
           builtIn: true,
