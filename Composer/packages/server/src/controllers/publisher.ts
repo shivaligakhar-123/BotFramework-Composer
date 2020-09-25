@@ -111,7 +111,11 @@ export const PublishController = {
         };
 
         // call the method
-        const results = await pluginMethod.call(null, configuration, currentProject, user);
+        const { getAccessToken, loginAndGetIdToken } = useElectronContext();
+        const results = await pluginMethod.call(null, configuration, currentProject, user, {
+          getAccessToken,
+          loginAndGetIdToken,
+        });
         // copy status into payload for ease of access in client
         const response = {
           ...results.result,

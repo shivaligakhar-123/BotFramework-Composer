@@ -8,7 +8,7 @@ export type ElectronContext = {
 
 var context;
 
-export const useElectronContext = () => context;
+export const useElectronContext = (): ElectronContext => context;
 
 export const setElectronContext = (c: ElectronContext) => {
   context = c;

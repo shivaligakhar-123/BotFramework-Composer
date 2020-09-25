@@ -35,6 +35,11 @@ export interface BotTemplate {
   support?: string[];
 }
 
+type PublishAuthHelpers = {
+  getAccessToken: (options) => Promise<string>;
+  loginAndGetIdToken: (options) => Promise<string>;
+};
+
 // TODO: Add types for project, metadata
 export interface PublishPlugin<Config = any> {
   // methods plugins should support
@@ -43,9 +48,14 @@ export interface PublishPlugin<Config = any> {
     project: IBotProject,
     metadata: any,
     user?: UserIdentity,
-    authHelpers?: any // TODO: type these
+    authHelpers?: PublishAuthHelpers
   ) => Promise<PublishResponse>;
-  getStatus?: (config: Config, project: IBotProject, user?: UserIdentity) => Promise<PublishResponse>;
+  getStatus?: (
+    config: Config,
+    project: IBotProject,
+    user?: UserIdentity,
+    authHelpers?: PublishAuthHelpers
+  ) => Promise<PublishResponse>;
   getHistory?: (config: Config, project: IBotProject, user?: UserIdentity) => Promise<PublishResult[]>;
   rollback?: (
     config: Config,

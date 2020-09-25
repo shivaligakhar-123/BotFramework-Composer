@@ -19,8 +19,6 @@ import { botEndpointsState } from '../atoms';
 import { BotStatus, Text } from './../../constants';
 import httpClient from './../../utils/httpUtil';
 import { logMessage, setError } from './shared';
-import { OAuthClient } from '../../utils/oauthClient';
-import { OAuthOptions } from '@bfc/extension-client/lib/auth/types';
 
 const PUBLISH_SUCCESS = 200;
 const PUBLISH_PENDING = 202;
