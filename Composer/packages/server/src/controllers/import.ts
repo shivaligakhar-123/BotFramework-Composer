@@ -1,79 +1,53 @@
 import { Request, Response } from 'express';
 import { join } from 'path';
-import { createWriteStream } from 'fs';
-import fetch from 'node-fetch';
-import { mkdirSync, existsSync } from 'fs-extra';
+import { ensureDirSync } from 'fs-extra';
 import extractZip from 'extract-zip';
+import { contentProviderFactory } from '../externalContentProvider/contentProviderFactory';
+import { ContentProviderMetadata } from '../externalContentProvider/externalContentProvider';
+import { ExternalContentProviderType } from '../externalContentProvider/providerType';
+import logger from '../logger';
 
-interface ImportPayload {
-  url: string;
-  templateName: string;
-}
+const log = logger.extend('import-controller');
 
 interface StartImportRequest extends Request {
   params: {
-    source: string;
+    source: ExternalContentProviderType;
   };
   query: {
-    accessToken: string;
     payload: string;
   };
 }
 
 async function startImport(req: StartImportRequest, res: Response, next) {
   const { source } = req.params;
-  const { accessToken, payload } = req.query;
-  const parsedPayload: ImportPayload = JSON.parse(payload);
-  console.log('starting import for: ', payload, source);
+  const { payload } = req.query;
+  const metadata: ContentProviderMetadata = JSON.parse(payload);
 
-  // go get the .zip from the url
-  const { url = '' } = parsedPayload;
-  console.log(url);
-  const tenantId = '72f988bf-86f1-41af-91ab-2d7cd011db47';
-  const result = await fetch(url, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'X-CCI-TenantId': tenantId,
-      'X-CCI-Routing-TenantId': tenantId,
-    },
-  });
-  const contentType = result.headers.get('content-type');
-  if (!contentType || contentType !== 'application/zip') {
-    console.error('Invalid content type header! Must be application/zip');
+  const contentProvider = contentProviderFactory.getProvider(source, metadata);
+  if (contentProvider) {
+    // download the bot content zip
+    const pathToBotContentsZip = await contentProvider.downloadBotContent();
+
+    // extract zip into new "template" directory
+    const baseDir = join(__dirname, '/temp');
+    ensureDirSync(baseDir);
+    const templateDir = join(baseDir, 'extractedTemplate');
+
+    try {
+      log('Extracting bot zip...');
+      await extractZip(pathToBotContentsZip, { dir: templateDir });
+      log('Done extracting.');
+      await contentProvider.cleanUp();
+    } catch (e) {
+      log('Error extracting zip: ', e);
+    }
+
+    setTimeout(() => {
+      res.json({ templateDir });
+    }, 2000);
+  } else {
+    res.status(500).send('No content provider found for source: ' + source);
   }
-
-  // write .zip from response to disk
-  const baseDir = join(__dirname, '/temp');
-  const zipPath = join(baseDir, 'bot-assets.zip');
-  if (!existsSync(baseDir)) {
-    mkdirSync(baseDir);
-  }
-  if (result && result.body) {
-    const zipDest = createWriteStream(zipPath);
-    result.body.pipe(zipDest);
-  }
-
-  console.log('Saved zip...');
-
-  // extract zip into "template" directory
-  const templateDir = join(baseDir, 'extractedTemplate');
-  if (!existsSync(templateDir)) {
-    mkdirSync(templateDir);
-  }
-
-  console.log('Extracting zip...');
-
-  try {
-    await extractZip(zipPath, { dir: templateDir });
-    console.log('Done extracting.');
-  } catch (e) {
-    console.error('Error extracting zip: ', e);
-  }
-
-  setTimeout(() => {
-    res.json({ templateDir, templateName: parsedPayload.templateName });
-  }, 2000);
 }
 
 export const ImportController = {

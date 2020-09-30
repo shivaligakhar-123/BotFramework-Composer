@@ -1,6 +1,7 @@
 import { IBotProject } from '@bfc/shared';
 import { join } from 'path';
-import { createWriteStream } from 'fs';
+import { createReadStream, createWriteStream } from 'fs';
+import fetch from 'node-fetch';
 
 import {
   PVAPublishJob,
@@ -47,24 +48,39 @@ export const publish = async (
     const idToken = await loginAndGetIdToken(authCredentials);
     const accessToken = await getAccessToken({ ...authCredentials, idToken });
 
-    // zip bot contents
-    const path = join(__dirname, 'bot.zip');
-    console.log('writing bot zip to :', path);
-    const file = createWriteStream(path);
+    // where we will store the bot .zip
+    const zipPath = join(__dirname, 'bot.zip');
 
-    let zipContent;
-    project.exportToZip((archive) => {
-      archive.on('error', (err) => {
-        console.error('Got error trying to export to zip: ', err);
-        throw new Error(err.message);
+    console.log('writing bot zip to :', zipPath);
+    // write the .zip to disk
+    const zipWriteStream = createWriteStream(zipPath);
+    await new Promise((resolve, reject) => {
+      project.exportToZip((archive: NodeJS.ReadStream & { finalize: () => void; on: (ev, listener) => void }) => {
+        archive.on('error', (err) => {
+          console.error('Got error trying to export to zip: ', err);
+          reject(err.message);
+        });
+        archive.pipe(zipWriteStream);
+        archive.on('end', () => {
+          archive.unpipe();
+          zipWriteStream.end();
+          resolve();
+        });
       });
-      zipContent = archive;
     });
-    if (!zipContent) {
-      throw new Error('Error while trying to zip up bot content.');
-    }
-    console.log(zipContent.pipe);
-    zipContent.pipe(file);
+
+    // open up the .zip for reading
+    const zipReadStream = createReadStream(zipPath);
+    await new Promise((resolve, reject) => {
+      zipReadStream.on('error', (err) => {
+        reject(err);
+      });
+      zipReadStream.once('readable', () => {
+        console.log('read stream is readable!');
+        resolve();
+      });
+    });
+    const length = zipReadStream.readableLength;
 
     // initiate the publish job
     const url = `${BASE_URL}/environments/${envId}/bots/${botId}/composer/publishoperations?deleteMissingComponents=${deleteMissingComponents}&comment=${encodeURIComponent(
@@ -72,11 +88,13 @@ export const publish = async (
     )}`;
     const res = await fetch(url, {
       method: 'POST',
-      body: zipContent,
+      body: zipReadStream,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'X-CCI-TenantId': tenantId,
         'X-CCI-Routing-TenantId': tenantId,
+        'Content-Type': 'application/zip',
+        'Content-Length': length.toString(),
       },
     });
     const job: PVAPublishJob = await res.json();
@@ -84,6 +102,7 @@ export const publish = async (
     // transform the PVA job to a publish response
     const status = 202; // accepted
     const result = xformJobToResult(job, status);
+    console.log(job);
 
     // add to publish history
     const botProjectId = project.id;

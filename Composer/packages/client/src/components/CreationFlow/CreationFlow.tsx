@@ -26,6 +26,7 @@ import { useProjectIdCache } from '../../utils/hooks';
 import { CreateOptions } from './CreateOptions';
 import { OpenProject } from './OpenProject';
 import DefineConversation from './DefineConversation';
+import { ImportModal } from '../ImportModal';
 
 type CreationFlowProps = RouteComponentProps<{}>;
 
@@ -187,6 +188,7 @@ const CreationFlow: React.FC<CreationFlowProps> = () => {
           onDismiss={handleDismiss}
           onSubmit={handleCreateQnA}
         />
+        <ImportModal path="import" />
       </Router>
     </Fragment>
   );
